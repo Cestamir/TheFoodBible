@@ -2,3 +2,13 @@
   background-color: grey;
   padding: 5px;
 }
+
+#search-bar{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  height: 100px;
+  width: 100%;
+  border: 1px solid red;
+}
