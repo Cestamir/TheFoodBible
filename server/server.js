@@ -18,27 +18,34 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // routes
 
 import recipeRoutes from "./routes/recipes.js"
-app.use("api/recipes",recipeRoutes);
+app.use("/api/recipes",recipeRoutes);
 
 // testing the database
-
-const recipe = await Recipe.create({
+try{
+    const recipe = await Recipe.create({
     title: "Roasted potatoes",
     instructions: " 1 step: Rinse potatoes, 2 step: Boil water to 100 degres, 3 step: insert potatoes, add 1 teaspoon of oil and cook for 5 minutes, 4 step: pour the water away and serve the potatoes",
     ingredients: ["salt","potatoes","oil"],
     author: "admin",
 })
 
-console.log(recipe)
+const newData = await Recipe.findById("68ceb4ab283683a12c6bb0d7").exec()
 
-// previous code with node server
+console.log(newData)
+} catch (err){
+    console.log(err)
+}
+
+
+
+// node server 1 tres
 app.get("/api/test", (req,res) => {
-    res.json({message: "Hello from the backend."})
+    res.json({message: "Node server is running.."})
 });
 
 app.get("/", (req,res) => {

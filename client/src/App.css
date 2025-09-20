@@ -30,3 +30,9 @@
   grid-template: 1fr 1fr 1fr 1fr 1fr / 1fr 1fr 1fr 1fr 1fr;
   gap: 20px;
 }
+
+#recipes {
+  width: 100%;
+  height: 100vh;
+  border: 2px solid yellow;
+}
