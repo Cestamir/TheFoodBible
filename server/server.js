@@ -45,6 +45,9 @@ try{
 //     author: "admin"
 // })
 
+// const dbStatus = await Recipe.deleteMany({title: "Roasted potatoes"})
+// console.log(dbStatus)
+
 } catch (err){
     console.log(err)
 }
