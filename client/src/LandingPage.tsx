@@ -15,7 +15,7 @@ const LandingPage = () => {
     const [message,setMessage] = useState<string>("");
 
     useEffect(() => {
-        fetch("api/test")
+        fetch("/api/test")
         .then(res => res.json())
         .then(data => setMessage(data.message))
         .catch((err) => {

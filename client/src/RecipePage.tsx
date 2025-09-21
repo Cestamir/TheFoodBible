@@ -8,16 +8,24 @@ interface recipeType {
     author: string
 }
 
+interface foodType {
+    id: string,
+    title: string,
+    foodType: string,
+    author: string
+}
+
 const RecipePage = () => {
 
     const [recipes,setRecipes] = useState<recipeType[]>([]);
+    const [foods,setFoods] = useState<foodType[]>([])
 
     useEffect(() => {
     const loadData = async () => {
         try{
         const res = await fetch(`/api/recipes`);
         const data = await res.json();
-        console.log(data)
+        console.log("RECIPES",data)
         setRecipes(data);
         } catch (err) {
             console.log(err)
@@ -26,9 +34,26 @@ const RecipePage = () => {
     loadData();
     },[])
 
+    useEffect(() => {
+        const loadData = async () => {
+            try{
+                const res = await fetch("/api/foods");
+                const data = await res.json();
+                console.log("FOODS ",data)
+                setFoods(data)
+            } catch (err) {
+                console.log(err)
+            }
+        }
+        loadData();
+    },[])
+
   return (
     <div id='recipes'>
-        {recipes ? Object.values(recipes).map((item) => (<div key={item.id}>
+        {recipes.length > 0 ? Object.values(recipes).map((item) => (<div key={item.id}>
+            {item.title}
+        </div>)) : "loading.."}
+        {foods.length > 0 ? Object.values(foods).map((item) => (<div key={item.id}>
             {item.title}
         </div>)) : "loading.."}
     </div>
