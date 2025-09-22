@@ -41,4 +41,22 @@ router.delete("/:id", async (req,res) => {
 
 })
 
+// edit route for recipe
+
+router.put("/:id",async (req,res) => {
+    const {id} = req.params;
+    const {title,instructions,ingredients,author} = req.body;
+    try{
+        const recipeToUpdate = await Recipe.findById(id);
+        recipeToUpdate.title = title;
+        recipeToUpdate.instructions = instructions;
+        recipeToUpdate.ingredients = ingredients;
+        recipeToUpdate.author = author;
+        await recipeToUpdate.save();
+        res.status(200).json(recipeToUpdate);
+    } catch (err) {
+        res.status(500).json({message: "Failed to update recipe",err})
+    }
+})
+
 export default router;

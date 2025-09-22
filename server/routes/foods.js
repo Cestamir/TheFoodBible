@@ -23,4 +23,34 @@ router.get("/", async (req,res) => {
     }
 });
 
+router.delete("/:id", async (req,res) => {
+    const {id} = req.params; 
+    try{
+        const foodToDelete = await Food.findById(id);
+        if (!foodToDelete){
+            return res.status(404).json({message: "Food not found"})
+        }
+        const deletedRecipe = await Recipe.deleteOne({_id: recipeToDelete._id})
+        res.status(200).json({message: "Deleted food successfully",deletedRecipe})
+    } catch (err) {
+        res.status(500).json({message: "Failed to delete food",err})
+    }
+
+})
+
+router.put("/:id",async (req,res) => {
+    const {id} = req.params;
+    const {title,foodType,author} = req.body;
+    try{
+        const foodToUpdate = await Food.findById(id);
+        foodToUpdate.title = title;
+        foodToUpdate.foodType = foodType;
+        foodToUpdate.author = author;
+        await foodToUpdate.save();
+        res.status(200).json(foodToUpdate);
+    } catch (err) {
+        res.status(500).json({message: "Failed to update food",err})
+    }
+})
+
 export default router;

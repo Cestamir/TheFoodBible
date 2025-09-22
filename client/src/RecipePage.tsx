@@ -23,7 +23,7 @@ const RecipePage = () => {
 
     const [newRecipe,setNewRecipe] = useState<recipeType>();
 
-    const newVal = {id:"1",title: "new title",instructions:"new instuctions",ingrediensts: ["h","e","l","l","o"],author: "edited"}
+    const newVal = {_id:"1",title: "new title",instructions:"new instuctions",ingrediensts: ["h","e","l","l","o"],author: "edited",Cre: ""}
 
     useEffect(() => {
     const loadData = async () => {
@@ -54,7 +54,7 @@ const RecipePage = () => {
     },[])
 
 
-    const addNewRecipe = (newVal: recipeType) => {
+    const addNewRecipe = (val: recipeType) => {
         // setNewRecipe({id: "1",title: "new title",instructions:"new instuctions",ingrediensts: ["h","e","l","l","o"],author: "edited"})
         // const postData = async () => {
         //     const dataToPost = newRecipe;
@@ -72,7 +72,7 @@ const RecipePage = () => {
         //         .then(data => console.log(data))
         //         .catch(error => console.error("Error:", error));
         // }
-        setNewRecipe(newVal)
+        setNewRecipe(val)
     }
 
     useEffect(() => {
@@ -90,6 +90,20 @@ const RecipePage = () => {
         }
     },[newRecipe])
 
+
+    // blueprint for update of the recipe
+
+    const handleUpdate = async (id: string) => {
+        const res = await fetch(`/api/recipes/${id}`,{method: "PUT",headers: {"Content-Type" : "application/json"},body: JSON.stringify({title: newVal.title,instructions: newVal.instructions, ingredients: newVal.ingrediensts,author: newVal.author})})
+        if(res.ok){
+            const updatedRecipe = await res.json()
+            setRecipes(prev => prev.map((item) => item._id === updatedRecipe._id ? updatedRecipe : item))
+            console.log("recipe updated succesfully")
+        } else {
+            console.log("failed to update recipe")
+        }
+    }
+
     // send a requeast to api to delete a item with specific id
 
     const handleDelete = async (id : string) => {
@@ -101,11 +115,13 @@ const RecipePage = () => {
 
   return (
     <div id='recipes'>
-        {recipes.length > 0 ? Object.values(recipes).map((item) => (<div key={`${item._id}`}>
-            {item.title}
-            <div onClick={() => handleDelete(item._id)}>DELETE RECIPE</div>
-        </div>)) : "loading.."}
-
+        {recipes.length > 0 ? Object.values(recipes).map((item) => (
+            <div key={`${item._id}`}>
+                {item.title}
+                <div onClick={() => handleDelete(item._id)}>DELETE RECIPE</div>
+                <div onClick={() => handleUpdate(item._id)}>UPDATE RECIPE</div>
+            </div>
+        )) : "loading.."}
 
         {foods.length > 0 ? Object.values(foods).map((item) => (<div key={item._id} >
             {item.title}
