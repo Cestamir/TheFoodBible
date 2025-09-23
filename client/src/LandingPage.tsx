@@ -2,13 +2,90 @@ import React, { useEffect, useState } from 'react'
 import { foodList } from '.';
 
 
+// CHECK ME OUT !!!!!
+// 
+// currently working to add a new food, deletion of food or RecipePage, edit food - need to do the same for the recipes, cleanup the useless code, delete useless interfaces 
+
 interface Food{
     id: number
     name: string
     class: string
 }
 
+interface newFoodFace {
+    title: string,
+    foodType: string,
+    author: string
+}
+
+interface newRecipeFace {
+    title: string,
+    instructions: string,
+    ingredients: string[],
+    author: string
+}
+
+interface recipeFace {
+    _id: string,
+    title: string,
+    instructions: string,
+    ingrediensts: string[],
+    author: string
+    createdAt: string
+}
+
+interface foodFace {
+    _id: string,
+    title: string,
+    foodType: string,
+    author: string
+}
+
+type editItems = newFoodFace | newRecipeFace;
+
+type items = foodFace | recipeFace;
+
 const LandingPage = () => {
+
+    // get data from the db
+
+    const [recipes,setRecipes] = useState<recipeFace[]>([]);
+    const [foods,setFoods] = useState<foodFace[]>([])
+
+     useEffect(() => {
+        const loadData = async () => {
+            try{
+            const res = await fetch(`/api/recipes`);
+            const data = await res.json();
+            console.log("RECIPES",data)
+            setRecipes(data);
+            } catch (err) {
+                console.log(err)
+            }
+        }
+        loadData();
+        },[])
+    
+    useEffect(() => {
+        const loadData = async () => {
+            try{
+                const res = await fetch("/api/foods");
+                const data = await res.json();
+                console.log("FOODS ",data)
+                setFoods(data)
+            } catch (err) {
+                console.log(err)
+            }
+        }
+        loadData();
+    },[])
+
+    useEffect(() => {
+        if(foods && recipes){
+            const conjoined = [...foods,...recipes]
+            setItemsList(conjoined)
+        }
+    },[foods,recipes])
 
     // server testing
 
@@ -31,30 +108,32 @@ const LandingPage = () => {
     // basic values
 
     const [searchedItem,setSearchedItem] = useState<string>("");
-    const [displayItems,setDisplayItems] = useState<Food[]>([]);
+    const [displayItems,setDisplayItems] = useState<items[]>([]);
     const [itemClicked,setItemClicked] = useState<boolean>(false);
-    const [currentItem,setCurrentItem] = useState<Food>();
+    const [currentItem,setCurrentItem] = useState<items>();
 
     // edit items
     const [editBtnClicked,setEditBtnClicked] = useState<boolean>(false);
-    const [editItem,setEditItem] = useState<Food>({id: 0,name: "",class: ""});
+    const [editFoodItem,setEditFoodItem] = useState<newFoodFace>();
 
     // default item list
-    const [itemsList,setItemsList] = useState(foodList)
+    const [itemsList,setItemsList] = useState<items[]>([...foods,...recipes]);
 
     const [defaultDetailStyle,setDefaultDetailStyle] = useState({display:"grid"})
 
-    // storing the value of new item and disply of the inputs to add it
+    // storing the value of new item and display of the inputs to add it
     const [addItemClicked,setAddItemClicked] = useState<boolean>(false);
 
-    const [newItem,setNewItem] = useState<Food>({id: 0,name: "",class: ""});
+    const [newFood,setNewFood] = useState<newFoodFace>({title: '',foodType: '',author: ''});
 
     // handles the change of search input and updates currently displayed items 
     const handleOnchange = (e : any) => {
         // resets load more btn
         setLimitedData(50);
+
         const newValue = e.target.value;
         setSearchedItem(newValue);
+
         if(newValue){
             showItems(newValue);
         }
@@ -67,9 +146,9 @@ const LandingPage = () => {
     }
 
     // Checks for every item in #database of foods, that contains string given as param in food name
-    const showItems = (input : string) => {
-        let filteredItems = itemsList.filter((item) => {
-            if (item.name.includes(input)){
+    const showItems = (inputValue : string) => {
+        let filteredItems : items[] = itemsList.filter((item) => {
+            if (item.title.toLowerCase().includes(inputValue)){
                 return item;
             }
         })
@@ -77,9 +156,9 @@ const LandingPage = () => {
     }
 
     // filters a item from #database of foods, that matches id with the id given as param
-    const showDetail = (id : number) => {
+    const showDetail = (id : string) => {
         itemsList.filter((item) => {
-            if(id == item.id){
+            if(id == item._id){
                 setCurrentItem(item)
                 return item;
             }
@@ -88,23 +167,23 @@ const LandingPage = () => {
 
     // handles addition of a new item and updates current dataset of items
 
-    const handleSubmit = (e : React.FormEvent) => {
-        if(newItem.name.length < 1 || newItem.class.length < 1){
+    const handleFoodSubmit = async(e : React.FormEvent) => {
+        if(newFood?.title.length < 1 || newFood?.foodType.length < 1){
             return;
         }
         try{
         e.preventDefault();
-        let addedItem;
-        const maxId = Math.max(...itemsList.map((item) => item.id)) + 1
-        addedItem = {id: maxId,name: newItem.name,class: newItem.class}
-        
-        const updatedArr = [...itemsList,addedItem];
-
-        setItemsList(updatedArr)
-
-        setNewItem({id: 0,name: "",class: ""});
-        } catch(e){
-            console.log(e)
+        const res = await fetch("/api/foods",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(newFood)})
+        if(res.ok){
+            const addedFood = await res.json();
+            const updatedArr = [...itemsList,addedFood];
+            setItemsList(updatedArr);
+            setNewFood({title: '',foodType: '',author: ''})
+        } else {
+            console.log("failed to add food")
+        }
+        } catch(err){
+            console.log(err)
         } finally {
             setAddItemClicked(prev => !prev)
             setCurrentItem(undefined);
@@ -115,25 +194,27 @@ const LandingPage = () => {
 
     // handles the submition of edit form and updates current dataset of items
 
-    const handleEdit = (e : React.FormEvent) => {
+    const handleFoodEdit = async(e : React.FormEvent,id : any) => {
         try{
         e.preventDefault();
-        
-        const updatedArr = itemsList.map((item) => {
-            if(item.id === editItem.id){
-                item.name = editItem.name;
-                item.class = editItem.class;
-            }
-            return item;
-        });
 
-        setItemsList(updatedArr)
+        const editedFood = {_id: currentItem?._id,title: editFoodItem?.title,foodType: editFoodItem?.foodType,author: editFoodItem?.author}
 
-        setEditItem({id: 0,name: "",class: ""});
+        const res = await fetch(`/api/foods/${id}`,{method: "PUT", headers: {"Content-Type" : "application/json"},body: JSON.stringify({title: editedFood.title,foodType: editedFood.foodType, author: editedFood.author})})
+
+        if(res.ok){
+            const updatedFood = await res.json();
+            setFoods(prev => prev.map((item) => item._id === id ? updatedFood : item))
+            console.log("food updated successfully")
+        } else {
+            console.log("failed to update food")
+        }
+
         }catch(e){
             console.log(e)
         }finally{
         setEditBtnClicked(prev => !prev);
+        setEditFoodItem(undefined)
         setCurrentItem(undefined);
         // where does it switch to none ? need to find better solution than setting state directly
         setDefaultDetailStyle({display: "grid"})
@@ -142,55 +223,53 @@ const LandingPage = () => {
     }
 
     // change og the values in edit form
-    const editItemChange = (e: any) => {
+    const editFoodItemChange = (e: any) => {
         const changeTarget = e.target.id;
         const value = e.target.value;
-        if(changeTarget === "edit-item-name"){
-            setEditItem((prev) => ({
-                ...prev,name: value
+        if(changeTarget === "edit-food-title"){
+            setEditFoodItem((prev) => ({
+                ...prev,title: value
             }))
-        } else if(changeTarget === "edit-item-class"){
-            setEditItem((prev) => ({
-                ...prev,class: value
+        } else if(changeTarget === "edit-food-type"){
+            setEditFoodItem((prev) => ({
+                ...prev,foodType: value
             }))
         }
     }
 
     // handles a change in inputs of adding a new food item
 
-    const newItemChange = (e : any) => {
+    const newFoodChange = (e : any) => {
         const changeTarget = e.target.id;
         const value = e.target.value;
-        if(changeTarget === "new-item-name"){
-            setNewItem((prev) => ({
-                ...prev,name: value
+        if(changeTarget === "new-food-title"){
+            setNewFood((prev) => ({
+                ...prev,title: value
             }))
-        } else if(changeTarget === "new-item-class"){
-            setNewItem((prev) => ({
-                ...prev,class: value
+        } else if(changeTarget === "new-food-type"){
+            setNewFood((prev) => ({
+                ...prev,foodType: value
             }))
         }
     }
 
-    // handle deletetion of an item, modifies the original dataset of foods
+    // handle deletetion of a selected item
 
-    const handleDelete = () => {
-        let deletionItem = currentItem;
-        let isConfirmed = confirm(`Are you sure you want to delete item ${deletionItem?.name} ?`);
-        if(isConfirmed){
-            console.log("deleted")
-            const itemIndex = itemsList.findIndex((item) => item.id === deletionItem?.id);
-            itemsList.splice(itemIndex,1);
-        };
+    const handleDelete = async (id : string) => {
+        let isConfirmed = confirm(`Are you sure you want to delete item ${currentItem?.title} ?`);
+        if(currentItem?.instructions && isConfirmed){
+            const res = await fetch(`/api/recipes/${id}`,{method: "DELETE"})
+            if(res.ok){
+                setRecipes(prev => prev.filter((item) => item._id !== id))
+            }
+        } else if (!currentItem?.instructions && isConfirmed){
+            const res = await fetch(`/api/foods/${id}`,{method: "DELETE"})
+            if(res.ok){
+                setFoods(prev => prev.filter((item) => item._id !== id))
+            }
+        }
         setItemClicked(prev => !prev)
         setDefaultDetailStyle({display: "grid"})
-    }
-
-
-    // testing button
-
-    const makeTest = () => {
-        console.log(message)
     }
 
     // load more items
@@ -202,31 +281,31 @@ const LandingPage = () => {
   return (
     <>
     <div id='search-bar'>
-        <button id='test-btn' onClick={makeTest}>TEST</button>
         <span>The Food Bible</span>
         <div>{message}</div>
         <input id='search-field' value={searchedItem} onChange={handleOnchange}/>
         <button id='search-button' onClick={handleSearch}>Search</button>
         {/* add new item to list */}
         {!addItemClicked && !editBtnClicked ? <button id='add-item' onClick={() => {setAddItemClicked((prev) => !prev)}}>Add item +</button> : null}
-        {/* Add form */}
+
+        {/* Add food item form */}
         {addItemClicked && !editBtnClicked && <div>
-                <form onSubmit={handleSubmit}>
-                    <label>New item name:</label>
-                    <input value={newItem?.name} onChange={newItemChange} id='new-item-name'/>
-                    <label>New item class:</label>
-                    <input value={newItem?.class} onChange={newItemChange} id='new-item-class'/>
-                    <button type='submit' >Confirm item ✅</button>
+                <form onSubmit={handleFoodSubmit}>
+                    <label>New food name:</label>
+                    <input value={newFood?.title} onChange={newFoodChange} id='new-food-title'/>
+                    <label>New food type:</label>
+                    <input value={newFood?.foodType} onChange={newFoodChange} id='new-food-type'/>
+                    <button type='submit' >Add Food ✅</button>
                     <button onClick={() => !addItemClicked}>X cancel</button>
                 </form>
             </div>}
             {/* Edit form */}
         {editBtnClicked && !addItemClicked && <div>
-                <form onSubmit={handleEdit}>
-                    <label>Edit name {currentItem?.name} :</label>
-                    <input value={editItem?.name} onChange={editItemChange} id='edit-item-name'/>
-                    <label>Edit class {currentItem?.class} :</label>
-                    <input value={editItem?.class} onChange={editItemChange} id='edit-item-class'/>
+                <form onSubmit={(e) => handleFoodEdit(e,currentItem?._id)}>
+                    <label>Edit food {currentItem?.title} :</label>
+                    <input value={editFoodItem?.title} onChange={editFoodItemChange} id='edit-food-title'/>
+                    <label>Edit class {currentItem?.foodType} :</label>
+                    <input value={editFoodItem?.foodType} onChange={editFoodItemChange} id='edit-food-type'/>
                     <button type='submit' >Confirm Edit ☑️</button>
                     <button onClick={() => {
                         setEditBtnClicked(prev => !prev);
@@ -242,13 +321,13 @@ const LandingPage = () => {
                 
                     <div onClick={() => {
                         setItemClicked(prev => !prev)
-                        showDetail(item.id);
+                        showDetail(item._id);
                         setDefaultDetailStyle({display: "none"})
                         }}  
-                    key={item.id}
+                    key={item._id}
                     className='search-item'
-                    id={`search-item-${item.id}`}>
-                        {item.name}
+                    id={`search-item-${item._id}`}>
+                        {item.title}
                     </div>
                 </>
                 )) : limitedData < 51 ? itemsList.filter((item,index) => index <25).map((item) => (
@@ -256,26 +335,26 @@ const LandingPage = () => {
                 
                     <div onClick={() => {
                         setItemClicked(prev => !prev)
-                        showDetail(item.id);
+                        showDetail(item._id);
                         setDefaultDetailStyle({display: "none"})
                         }}  
-                    key={item.id}
+                    key={item._id}
                     className='search-item'
-                    id={`search-item-${item.id}`}>
-                        {item.name}
+                    id={`search-item-${item._id}`}>
+                        {item.title}
                     </div>
                 </>
                 // display more data if btn load more was clicked
                 )) : itemsList.filter((item,index) => index < limitedData).map((item) => (
                     <div onClick={() => {
                         setItemClicked(prev => !prev)
-                        showDetail(item.id);
+                        showDetail(item._id);
                         setDefaultDetailStyle({display: "none"})
                         }}  
-                    key={item.id}
+                    key={item._id}
                     className='search-item'
-                    id={`search-item-${item.id}`}>
-                        {item.name}
+                    id={`search-item-${item._id}`}>
+                        {item.title}
                     </div>
                 ))}
                 {/* loads more data */}
@@ -284,8 +363,8 @@ const LandingPage = () => {
             {/* item detail */}
             <div id='search-item-detail'>
                 {itemClicked && currentItem && <p>
-                        <span>{currentItem?.class}</span>
-                        <span>{currentItem?.id}</span>
+                        <span>{currentItem?.author}</span>
+                        <span>{currentItem?._id}</span>
                         {/* cancel btn */}
                         <button 
                         id='back-btn'
@@ -299,13 +378,13 @@ const LandingPage = () => {
                         id='edit-btn'
                          onClick={() => {
                             setEditBtnClicked(prev => !prev);
-                            setEditItem({id:currentItem?.id,name:currentItem?.name,class:currentItem?.class})
+                            setEditFoodItem({title:currentItem?.title,foodType:currentItem?.foodType,author: currentItem?.author})
                             
                         }}>🔄 CHANGE</button>
                         {/* delete btn */}
                         <button 
                         id='delete-btn'
-                        onClick={() =>{handleDelete()}}>
+                        onClick={() =>{handleDelete(currentItem._id)}}>
                             🔴DELETE
                         </button>
                         </p>}
