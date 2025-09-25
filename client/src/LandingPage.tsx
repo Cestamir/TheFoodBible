@@ -4,7 +4,7 @@ import { foodList } from '.';
 
 // CHECK ME OUT !!!!!
 // 
-// currently working to add a new food, deletion of food or RecipePage, edit food - need to do the same for the recipes, cleanup the useless code, delete useless interfaces 
+// currently working to add a new food, deletion of food or RecipePage, edit food - need to do the same for the recipes, cleanup the useless code, delete useless interfaces food,edititems
 
 interface Food{
     id: number
