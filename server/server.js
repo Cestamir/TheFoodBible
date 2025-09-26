@@ -28,13 +28,13 @@ app.use("/api/foods",foodRoutes);
 
 // testing the database
 
-try{
-const recipe = await Recipe.create({
-    title: "Roasted potatoes",
-    instructions: " 1 step: Rinse potatoes, 2 step: Boil water to 100 degres, 3 step: insert potatoes, add 1 teaspoon of oil and cook for 5 minutes, 4 step: pour the water away and serve the potatoes",
-    ingredients: ["salt","potatoes","oil"],
-    author: "admin",
-})
+// try{
+// const recipe = await Recipe.create({
+//     title: "Roasted potatoes",
+//     instructions: " 1 step: Rinse potatoes, 2 step: Boil water to 100 degres, 3 step: insert potatoes, add 1 teaspoon of oil and cook for 5 minutes, 4 step: pour the water away and serve the potatoes",
+//     ingredients: ["salt","potatoes","oil"],
+//     author: "admin",
+// })
 
 // const newData = await Recipe.findById("68ceb4ab283683a12c6bb0d7").exec()
 // console.log(newData)
@@ -48,9 +48,9 @@ const recipe = await Recipe.create({
 // const dbStatus = await Recipe.deleteMany({title: "Roasted potatoes"})
 // console.log(dbStatus)
 
-} catch (err){
-    console.log(err)
-}
+// } catch (err){
+//     console.log(err)
+// }
 
 
 

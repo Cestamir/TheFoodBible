@@ -29,7 +29,7 @@ interface recipeFace {
     _id: string,
     title: string,
     instructions: string,
-    ingrediensts: string[],
+    ingredients: string[],
     author: string
     createdAt: string
 }
@@ -40,8 +40,6 @@ interface foodFace {
     foodType: string,
     author: string
 }
-
-type editItems = newFoodFace | newRecipeFace;
 
 type items = foodFace | recipeFace;
 
@@ -115,6 +113,8 @@ const LandingPage = () => {
     // edit items
     const [editBtnClicked,setEditBtnClicked] = useState<boolean>(false);
     const [editFoodItem,setEditFoodItem] = useState<newFoodFace>();
+    const [editRecipe,setEditRecipe] = useState<newRecipeFace>();
+    const [editRecipeClicked,setEditRecipeClicked] = useState<boolean>();
 
     // default item list
     const [itemsList,setItemsList] = useState<items[]>([...foods,...recipes]);
@@ -224,6 +224,32 @@ const LandingPage = () => {
         }
     }
 
+    // handles recipe edit
+
+    const handleRecipeEdit = async (e : React.FormEvent,id: any) => {
+        try{
+            e.preventDefault();
+            const editedRecipe = {_id: currentItem?._id,title: editRecipe?.title,instructions: editRecipe?.instructions,ingredients: editRecipe?.ingredients,author: editRecipe?.author}
+            const res = await fetch(`/api/recipes/${id}`,{method: "PUT",headers: {"Content-Type" : "application/json"},body: JSON.stringify({title: editedRecipe.title,instructions: editedRecipe.instructions,ingredients: editedRecipe.ingredients, author: editedRecipe.author})})
+            if(res.ok){
+                const updatedRecipe = await res.json();
+                setRecipes((prev) => prev.map((item) => item._id === id ? updatedRecipe : item))
+                console.log("Recipe updated successfully")
+            } else {
+                console.log("failed to update recipe",res)
+            }
+        } catch(err){
+            console.log(err)
+        } finally {
+        setEditRecipeClicked(prev => !prev);
+        setEditRecipe(undefined)
+        setCurrentItem(undefined);
+        // where does it switch to none ? need to find better solution than setting state directly
+        setDefaultDetailStyle({display: "grid"})
+        setItemClicked(prev => !prev)
+        }
+    }
+
     // change og the values in edit form
     const editFoodItemChange = (e: any) => {
         const changeTarget = e.target.id;
@@ -239,7 +265,28 @@ const LandingPage = () => {
         }
     }
 
-    // handles a change in inputs of adding a new food item
+    // handles onchange in edit form recipe
+
+    const editRecipeItemChange = (e : any) => {
+        const changeTarget = e.target.id;
+        const value = e.target.value
+        if(changeTarget === "edit-recipe-title"){
+            setEditRecipe((prev) => ({
+                ...prev, title: value
+            }))
+        } else if (changeTarget === "edit-recipe-instructions"){
+            setEditRecipe((prev) => ({
+                ...prev, instructions: value
+            }))
+        } else if (changeTarget === "edit-recipe-ingredients"){
+            setEditRecipe((prev) => ({
+                ...prev,ingredients: value.split(", ")
+            }))
+        }
+
+    }
+
+    // handles a onchange in inputs of adding a new food item
 
     const newFoodChange = (e : any) => {
         const changeTarget = e.target.id;
@@ -254,7 +301,8 @@ const LandingPage = () => {
             }))
         }
     }
-    // handles a change in inputs od adding a new recipe
+    // handles a onchange in inputs od adding a new recipe
+
     const newRecipeChange = (e : any) => {
         const changeTarget = e.target.id;
         const value = e.target.value;
@@ -266,10 +314,9 @@ const LandingPage = () => {
             setNewRecipe((prev) => ({
                 ...prev,instructions: value
             }))
-            // not working adding bunch of new values
         } else if(changeTarget === "new-recipe-ingredients"){
             setNewRecipe((prev) => ({
-                ...prev,ingredients : [...prev.ingredients,value]
+                ...prev,ingredients: value.split(", ")
             }))
         } else if (changeTarget === "new-recipe-author"){
             setNewRecipe((prev) => ({
@@ -297,7 +344,7 @@ const LandingPage = () => {
         } catch(err){
             console.log(err)
         } finally {
-            setAddItemClicked(prev => !prev)
+            setAddRecipeClicked(prev => !prev)
             setCurrentItem(undefined);
             // where does it switch to none ? need to find better solution than setting state directly
             setDefaultDetailStyle({display: "grid"})
@@ -307,7 +354,7 @@ const LandingPage = () => {
     // handle deletetion of a selected item
 
     const handleDelete = async (id : string) => {
-        let isConfirmed = confirm(`Are you sure you want to delete item ${currentItem?.title} ?`);
+        let isConfirmed = confirm(`Are you sure you want to delete ${currentItem?.title} ?`);
         if(currentItem?.instructions && isConfirmed){
             const res = await fetch(`/api/recipes/${id}`,{method: "DELETE"})
             if(res.ok){
@@ -341,7 +388,7 @@ const LandingPage = () => {
 
         {/* add new recipe item to the list */}
         {!addItemClicked && !editBtnClicked && !addRecipeClicked ? <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add recipe +</button> : null}
-        {addRecipeClicked && <div>
+        {addRecipeClicked && !addItemClicked && <div>
                 <form onSubmit={handleRecipeSubmit}>
                     <label>New recipe name:</label>
                     <input value={newRecipe?.title} onChange={newRecipeChange} id='new-recipe-title'/>
@@ -350,10 +397,10 @@ const LandingPage = () => {
                     <label>New recipe ingredients:</label>
                     <input value={newRecipe?.ingredients} onChange={newRecipeChange} id='new-recipe-ingredients'/>
 
-                    {/* overflowing cant type */}
+                    {/* overflowing cant type name properly fix CSS*/}
 
-                    {/* <label>New recipe author:</label>
-                    <input value={newRecipe?.author} onChange={newRecipeChange} id='new-recipe-author'/> */}
+                    <label>New recipe author:</label>
+                    <input value={newRecipe?.author} onChange={newRecipeChange} id='new-recipe-author'/>
                     <button type='submit' >Add Recipe ✅</button>
                     <button onClick={() => !addRecipeClicked}>X cancel</button>
                 </form>
@@ -369,7 +416,7 @@ const LandingPage = () => {
                     <button onClick={() => !addItemClicked}>X cancel</button>
                 </form>
             </div>}
-            {/* Edit form */}
+            {/* Edit form for food*/}
         {editBtnClicked && !addItemClicked && <div>
                 <form onSubmit={(e) => handleFoodEdit(e,currentItem?._id)}>
                     <label>Edit food title {currentItem?.title} :</label>
@@ -380,6 +427,21 @@ const LandingPage = () => {
                     <button onClick={() => {
                         setEditBtnClicked(prev => !prev);
                         !editBtnClicked}}>X cancel</button>
+                </form>
+            </div>}
+            {/* edit recipe form */}
+            {editRecipeClicked && !addItemClicked && <div>
+                <form onSubmit={(e) => handleRecipeEdit(e,currentItem?._id)}>
+                    <label>Edit recipe title {currentItem?.title} :</label>
+                    <input value={editRecipe?.title} onChange={editRecipeItemChange} id='edit-recipe-title'/>
+                    <label>Edit recipe instructions :</label>
+                    <input value={editRecipe?.instructions} onChange={editRecipeItemChange} id='edit-recipe-instructions'/>
+                    <label>Edit recipe ingredients :</label>
+                    <input value={editRecipe?.ingredients} onChange={editRecipeItemChange} id='edit-recipe-ingredients'/>
+                    <button type='submit' >Confirm Edit ☑️</button>
+                    <button onClick={() => {
+                        setEditRecipeClicked(prev => !prev);
+                        !editRecipeClicked}}>X cancel</button>
                 </form>
             </div>}
     </div>
@@ -447,9 +509,13 @@ const LandingPage = () => {
                         <button
                         id='edit-btn'
                          onClick={() => {
+                            if("instructions" in currentItem){
+                            setEditRecipeClicked(prev => !prev)
+                            setEditRecipe({title: currentItem?.title,instructions: currentItem?.instructions,ingredients: currentItem?.ingredients,author: currentItem?.author})
+                            } else if ("foodType" in currentItem) {
                             setEditBtnClicked(prev => !prev);
                             setEditFoodItem({title:currentItem?.title,foodType:currentItem?.foodType,author: currentItem?.author})
-                            
+                            }
                         }}>🔄 CHANGE</button>
                         {/* delete btn */}
                         <button 
