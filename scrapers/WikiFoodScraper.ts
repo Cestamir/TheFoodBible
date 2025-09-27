@@ -9,8 +9,17 @@ const foods: {
     createdAt: Date;
 }[] = [];
 
+const recipes: {
+    title: string;
+    instructions: string;
+    ingredients: string[];
+    author: string;
+    createdAt: Date;
+}[] = [];
+
 dotenv.config();
 
+// basic settings
 const MONGO_URI = process.env.MONGO_URI!;
 const client = new MongoClient(MONGO_URI);
 const BASE_URL = "https://en.wikipedia.org"
@@ -22,6 +31,8 @@ async function fetchHtml(url : string): Promise<string> {
     if (!res.ok) throw new Error(`Failed to fetch ${url}`)
     return await res.text();
 }
+
+// get food from wiki
 
 async function getFoodTypeFromPage(foodUrl : string): Promise<string>{
     try{

@@ -450,7 +450,6 @@ const LandingPage = () => {
             <div id='search-item-grid' style={defaultDetailStyle}>
             {searchedItem ? displayItems.map((item) => (
                 <>
-                
                     <div onClick={() => {
                         setItemClicked(prev => !prev)
                         showDetail(item._id);
