@@ -31,6 +31,9 @@ interface recipeFace {
     instructions: string,
     ingredients: string[],
     author: string
+    cookTime: string
+    url: string
+    image: string
     createdAt: string
 }
 
@@ -519,7 +522,7 @@ const LandingPage = () => {
                         {/* delete btn */}
                         <button 
                         id='delete-btn'
-                        onClick={() =>{handleDelete(currentItem._id)}}>
+                        onClick={() =>{handleDelete(currentItem._id);setSearchedItem("")}}>
                             🔴DELETE
                         </button>
                         </p>}

@@ -39,13 +39,18 @@ async function getRecipesFromPage(url: string){
     //  find recipe type on JSON-LD data
     const recipeData = Array.isArray(jsonLd) ? jsonLd.find((item) => item["@type"] === "Recipe") : jsonLd["@type"] === "Recipe" ? jsonLd : null;
 
-
-    // see why there is diffrent data
+    // see why there is different data
     if (!recipeData) {
         console.warn("⚠️ No recipe data found for URL:", url);
         console.log("Raw JSON-LD:\n",jsonLdRaw)
         return null;
     }
+
+    // find cooktime and image on JSON-LD data
+
+    const image : string = recipeData.image ? Array.isArray(recipeData.image) ? recipeData.image[0] : recipeData.image : "";
+    const cookTime : string = recipeData.cookTime || recipeData.totalTime || "";
+
 
     // constructing of the recipe
     const title : string = recipeData.name || "Untitiled"
@@ -68,6 +73,9 @@ async function getRecipesFromPage(url: string){
         title,
         ingredients,
         instructions,
+        cookTime,
+        url,
+        image,
         author,
         createdAt: new Date()
     }
@@ -78,51 +86,71 @@ async function runScraper(){
         await client.connect();
         const db = client.db("test");
         const collection = db.collection("recipes")
-        const html = await fetchHtml(MAIN_URL)
-        const $ = cheerio.load(html)
-
-        // const recipe = await getRecipesFromPage(TEST_URL)
 
 
-        // selecting the data from the page bbcfoods
-        const links = $(".card__content > a").map((_, el) => {
+        const maxPages = 3;
+
+        // count of sucessfull items saved
+        let countOfItems : number = 0;
+
+        for(let i = 1; i <= maxPages; i++){
+
+            const PAGE_URL = `${MAIN_URL}?page=${i}`
+            const html = await fetchHtml(PAGE_URL)
+            const $ = cheerio.load(html)
+            // const recipe = await getRecipesFromPage(TEST_URL)
+
+            // selecting the data from the page provided page
+            const links = $(".card__content > a").map((_, el) => {
             const $el = $(el);
+            const title = $el.find("h2").text().trim();
+            const href = $el.attr("href")
             return {
-            title: $el.find("h2").text().trim(),
-            href: $el.attr("href"),
+                title,
+                href: href?.startsWith("http") ? href : `https://www.bbcgoodfood.com${href}`
             };
-  }).get().filter((item) => item.href && item.href.startsWith("https://www.bbcgoodfood.com/recipes/"))
+            }).get().filter((item) => item.href && item.href.startsWith("https://www.bbcgoodfood.com/recipes/"))
 
-//   show of the links gathered
-        console.log(links.map((link) => link.href))
+            //   show the links gathered from html 
+            console.log(links.map((link) => link.href))
+            
 
-        // looping over the links and adding item to db
-        for(let i = 0;i < Math.min(20,links.length);i++){
-            const {title,href} = links[i];
-            const FULL_URL = href.startsWith("https://www.bbcgoodfood.com/recipes/") ? href : `https://www.bbcgoodfood.com${href}`
+            // looping over the links and adding item to db
+            for(let {title,href} of links ){
+                const FULL_URL = href?.startsWith("https://www.bbcgoodfood.com/recipes/") ? href : `https://www.bbcgoodfood.com${href}`
 
-            const rec = await getRecipesFromPage(FULL_URL);
+                const rec = await getRecipesFromPage(FULL_URL);
 
-            if(!rec){
-                console.log(`Skipping, no recipe data for ${title}`)
-                continue;
+                if(!rec){
+                    console.log(`Skipping, no recipe data for ${title}`)
+                    continue;
+                }
+
+                const exists = await collection.findOne({url: href})
+                if(exists){
+                    console.log("Skipping duplicate recipe in the database..",rec.url)
+                    continue;
+                }
+
+                rec.url = href;
+
+                // insertion and delay for safety reasons
+                console.log(`${rec.title}`)
+                await collection.insertOne(rec)
+                countOfItems += 1;
+                await delay(1000);
             }
 
-            const exists = await collection.findOne({title})
-            if(exists){
-                console.log("Skipping duplicate item in the database of recipes")
-                continue;
-            }
-            // insertion and delay for safety reasons
-            console.log(`${rec.title}`)
-            await collection.insertOne(rec)
-            await delay(1500);
+
         }
-        console.log("success!")
+        console.log(`succesfully scraped ${countOfItems} recipes. ✅`)
+        countOfItems = 0;
     } catch (err) {
         console.log("Error",err)
     } finally {
+        
         await client.close()
+
     }
 }
 
