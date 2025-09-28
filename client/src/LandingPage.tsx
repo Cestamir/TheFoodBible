@@ -40,6 +40,7 @@ interface recipeFace {
 interface foodFace {
     _id: string,
     title: string,
+    url: string,
     foodType: string,
     author: string
 }

@@ -5,14 +5,7 @@ import dotenv from "dotenv"
 const foods: {
     title: string;
     foodType: string;
-    author: string;
-    createdAt: Date;
-}[] = [];
-
-const recipes: {
-    title: string;
-    instructions: string;
-    ingredients: string[];
+    url: string;
     author: string;
     createdAt: Date;
 }[] = [];
@@ -54,8 +47,6 @@ async function getFoodTypeFromPage(foodUrl : string): Promise<string>{
     } catch (err) {
         console.log(`Error fetching food ${foodUrl}`)
         return "Unknown"
-    } finally{
-        console.log("done")
     }
 }
 
@@ -72,10 +63,10 @@ async function scrapeFoods(){
     const db = client.db("test");
     const collection = db.collection("foods")
 
-    console.log(`Scraping ${links.length} foods \n(limited to 20 for safety) ..`)
-
-    for (let i = 0; i < Math.min(20,links.length);i++){
-        const {title,href} = links[i];
+    console.log(`Scraping ${links.length} foods..`)
+    let i = 0;
+    for (let {title,href} of links){
+        if (i < 100){
         const FULL_URL = `${BASE_URL}${href}`;
         const foodType = await getFoodTypeFromPage(FULL_URL);
 
@@ -84,10 +75,14 @@ async function scrapeFoods(){
             console.log(`skipping duplicate value ${title}`)
             continue;
         }
+        i += 1;
+        let url = href;
+
 
         const doc = {
             title,
             foodType,
+            url,
             author: "admin",
             createdAt: new Date(),
         }
@@ -95,7 +90,11 @@ async function scrapeFoods(){
         console.log(`${title} - ${foodType}`)
 
         await collection.insertOne(doc);
-        await delay(1500)
+        await delay(1000)
+        } else {
+            break;
+        }
+        
     }
 
     await client.close();
