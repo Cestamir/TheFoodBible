@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { foodList } from '.';
+import ReadItem from './ReadItem';
 
 
 // CHECK ME OUT !!!!!
@@ -25,7 +26,7 @@ interface newRecipeFace {
     author: string
 }
 
-interface recipeFace {
+export interface recipeFace {
     _id: string,
     title: string,
     instructions: string,
@@ -37,7 +38,7 @@ interface recipeFace {
     createdAt: string
 }
 
-interface foodFace {
+export interface foodFace {
     _id: string,
     title: string,
     url: string,
@@ -500,6 +501,7 @@ const LandingPage = () => {
                 {itemClicked && currentItem && <p>
                         <span>{currentItem?.author}</span>
                         <span>{currentItem?._id}</span>
+                        <ReadItem itemToDisplay={currentItem}/>
                         {/* cancel btn */}
                         <button 
                         id='back-btn'
