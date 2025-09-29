@@ -498,9 +498,7 @@ const LandingPage = () => {
             </div>
             {/* item detail */}
             <div id='search-item-detail'>
-                {itemClicked && currentItem && <p>
-                        <span>{currentItem?.author}</span>
-                        <span>{currentItem?._id}</span>
+                {itemClicked && currentItem && <div>
                         <ReadItem itemToDisplay={currentItem}/>
                         {/* cancel btn */}
                         <button 
@@ -528,7 +526,7 @@ const LandingPage = () => {
                         onClick={() =>{handleDelete(currentItem._id);setSearchedItem("")}}>
                             🔴DELETE
                         </button>
-                        </p>}
+                        </div>}
             </div>
         
     </div>

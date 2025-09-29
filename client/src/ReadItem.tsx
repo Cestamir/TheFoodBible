@@ -18,19 +18,19 @@ const ReadItem : React.FC<ComponentProps> = ({itemToDisplay}) => {
 
     const [readDisplay,setReadDisplay] = useState({display: 'block'})
 
+    function testRecipeValues(){
+        console.log(itemToDisplay)
+    }
+
+    const food = isFood(itemToDisplay);
+    const recipe = isRecipe(itemToDisplay);
+
   return (
     <div id='readitem' style={readDisplay}>
-        {isFood(itemToDisplay) ? 
-        <div>
-            {itemToDisplay.title}
-            {itemToDisplay.url}
-        </div> : null}
-        {isRecipe(itemToDisplay) ? <div>
-            {itemToDisplay.title}
-            {itemToDisplay.url}
-            {itemToDisplay.cookTime}
-        </div> : null}
+        {food && <div>{itemToDisplay.foodType}</div>}
+        {recipe && <div>{itemToDisplay.instructions}</div>}
         {<button onClick={() => setReadDisplay({display: "none"})}>❌</button>}
+        {<button onClick={() => testRecipeValues()}>click</button>}
     </div>
   )
 }
