@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { foodList } from '.';
 import ReadItem from './ReadItem';
-
-
-// CHECK ME OUT !!!!!
-// 
-// currently working to add a new food, deletion of food or RecipePage, edit food - need to do the same for the recipes, cleanup the useless code, delete useless interfaces food,edititems
-
-interface Food{
-    id: number
-    name: string
-    class: string
-}
+import Item from './Item';
 
 interface newFoodFace {
     title: string,
@@ -454,8 +443,12 @@ const LandingPage = () => {
         {/* displays items based on the input entered, displays item detail if clicked */}
             <div id='search-item-grid' style={defaultDetailStyle}>
             {searchedItem ? displayItems.map((item) => (
-                <>
-                    <div onClick={() => {
+                <div onClick={() => {
+                        setItemClicked(prev => !prev)
+                        showDetail(item._id);
+                        setDefaultDetailStyle({display: "none"})
+                        }}>
+                    {/* <div onClick={() => {
                         setItemClicked(prev => !prev)
                         showDetail(item._id);
                         setDefaultDetailStyle({display: "none"})
@@ -464,8 +457,10 @@ const LandingPage = () => {
                     className='search-item'
                     id={`search-item-${item._id}`}>
                         {item.title}
-                    </div>
-                </>
+                        {item.image ? item.image : "🍽️"}
+                    </div> */}
+                    <Item itemToDisplay={item} key={item._id}/>
+                </div>
                 )) : limitedData < 51 ? itemsList.filter((item,index) => index <25).map((item) => (
                 <>
                 
@@ -478,6 +473,7 @@ const LandingPage = () => {
                     className='search-item'
                     id={`search-item-${item._id}`}>
                         {item.title}
+                        {item.image ? item.image : "🍽️"}
                     </div>
                 </>
                 // display more data if btn load more was clicked
@@ -491,6 +487,7 @@ const LandingPage = () => {
                     className='search-item'
                     id={`search-item-${item._id}`}>
                         {item.title}
+                        {item.image ? item.image : "🍽️"}
                     </div>
                 ))}
                 {/* loads more data */}
