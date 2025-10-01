@@ -4,10 +4,10 @@ const router = express.Router();
 import Recipe from "../models/Recipe.js";
 
 router.post("/", async (req,res) => {
-    const {title,instructions,ingredients,author} = req.body;
+    const {title,instructions,ingredients,author,url,image,cookTime} = req.body;
 
     try {
-        const newRecipe = new Recipe({title,instructions,ingredients,author});
+        const newRecipe = new Recipe({title,instructions,ingredients,author,url,image,cookTime});
         await newRecipe.save();
         res.status(201).json(newRecipe)
     } catch (err) {
@@ -45,13 +45,16 @@ router.delete("/:id", async (req,res) => {
 
 router.put("/:id",async (req,res) => {
     const {id} = req.params;
-    const {title,instructions,ingredients,author} = req.body;
+    const {title,instructions,ingredients,author,cookTime,url,image} = req.body;
     try{
         const recipeToUpdate = await Recipe.findById(id);
         recipeToUpdate.title = title;
         recipeToUpdate.instructions = instructions;
         recipeToUpdate.ingredients = ingredients;
         recipeToUpdate.author = author;
+        recipeToUpdate.url = url;
+        recipeToUpdate.cookTime = cookTime;
+        recipeToUpdate.image = image;
         await recipeToUpdate.save();
         res.status(200).json(recipeToUpdate);
     } catch (err) {

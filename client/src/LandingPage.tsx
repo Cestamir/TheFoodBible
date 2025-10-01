@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import ReadItem from './ReadItem';
 import Item from './Item';
+import FormEl from './AddRecipeItem';
+import AddFoodItem from './AddFoodItem';
 
 interface newFoodFace {
     title: string,
@@ -383,36 +385,36 @@ const LandingPage = () => {
         {/* add new recipe item to the list */}
         {!addItemClicked && !editBtnClicked && !addRecipeClicked ? <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add recipe +</button> : null}
         {addRecipeClicked && !addItemClicked && <div>
-                <form onSubmit={handleRecipeSubmit}>
+                <FormEl/>
+                {/* <form onSubmit={handleRecipeSubmit}>
                     <label>New recipe name:</label>
                     <input value={newRecipe?.title} onChange={newRecipeChange} id='new-recipe-title'/>
                     <label>New recipe instructions:</label>
                     <input value={newRecipe?.instructions} onChange={newRecipeChange} id='new-recipe-instructions'/>
                     <label>New recipe ingredients:</label>
                     <input value={newRecipe?.ingredients} onChange={newRecipeChange} id='new-recipe-ingredients'/>
-
-                    {/* overflowing cant type name properly fix CSS*/}
-
                     <label>New recipe author:</label>
                     <input value={newRecipe?.author} onChange={newRecipeChange} id='new-recipe-author'/>
                     <button type='submit' >Add Recipe ✅</button>
                     <button onClick={() => !addRecipeClicked}>X cancel</button>
-                </form>
+                </form> */}
             </div>}
         {/* Add food item form */}
         {addItemClicked && !editBtnClicked && <div>
-                <form onSubmit={handleFoodSubmit}>
+            <AddFoodItem/>
+                {/* <form onSubmit={handleFoodSubmit}>
                     <label>New food name:</label>
                     <input value={newFood?.title} onChange={newFoodChange} id='new-food-title'/>
                     <label>New food type:</label>
                     <input value={newFood?.foodType} onChange={newFoodChange} id='new-food-type'/>
                     <button type='submit' >Add Food ✅</button>
                     <button onClick={() => !addItemClicked}>X cancel</button>
-                </form>
+                </form> */}
             </div>}
             {/* Edit form for food*/}
         {editBtnClicked && !addItemClicked && <div>
-                <form onSubmit={(e) => handleFoodEdit(e,currentItem?._id)}>
+            {/* <EditFoodItem itemToDisplay={currentItem}/> */}
+                {/* <form onSubmit={(e) => handleFoodEdit(e,currentItem?._id)}>
                     <label>Edit food title {currentItem?.title} :</label>
                     <input value={editFoodItem?.title} onChange={editFoodItemChange} id='edit-food-title'/>
                     <label>Edit food type {currentItem?.foodType} :</label>
@@ -421,11 +423,11 @@ const LandingPage = () => {
                     <button onClick={() => {
                         setEditBtnClicked(prev => !prev);
                         !editBtnClicked}}>X cancel</button>
-                </form>
+                </form> */}
             </div>}
             {/* edit recipe form */}
             {editRecipeClicked && !addItemClicked && <div>
-                <form onSubmit={(e) => handleRecipeEdit(e,currentItem?._id)}>
+                {/* <form onSubmit={(e) => handleRecipeEdit(e,currentItem?._id)}>
                     <label>Edit recipe title {currentItem?.title} :</label>
                     <input value={editRecipe?.title} onChange={editRecipeItemChange} id='edit-recipe-title'/>
                     <label>Edit recipe instructions :</label>
@@ -436,7 +438,7 @@ const LandingPage = () => {
                     <button onClick={() => {
                         setEditRecipeClicked(prev => !prev);
                         !editRecipeClicked}}>X cancel</button>
-                </form>
+                </form> */}
             </div>}
     </div>
     <div id='display'>
@@ -496,6 +498,7 @@ const LandingPage = () => {
             {/* item detail */}
             <div id='search-item-detail'>
                 {itemClicked && currentItem && <div>
+                    {/* displays current item detail */}
                         <ReadItem itemToDisplay={currentItem}/>
                         {/* cancel btn */}
                         <button 

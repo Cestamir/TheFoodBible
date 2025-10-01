@@ -3,10 +3,10 @@ const router = express.Router();
 import Food from "../models/Food.js";
 
 router.post("/", async (req,res) => {
-    const {title,foodType,author} = req.body;
+    const {title,foodType,author,url} = req.body;
 
     try {
-        const newFood = new Food({title,foodType,author});
+        const newFood = new Food({title,foodType,author,url});
         await newFood.save();
         res.status(201).json(newFood)
     } catch (err) {
@@ -40,12 +40,13 @@ router.delete("/:id", async (req,res) => {
 
 router.put("/:id",async (req,res) => {
     const {id} = req.params;
-    const {title,foodType,author} = req.body;
+    const {title,foodType,author,url} = req.body;
     try{
         const foodToUpdate = await Food.findById(id);
         foodToUpdate.title = title;
         foodToUpdate.foodType = foodType;
         foodToUpdate.author = author;
+        foodToUpdate.url = url;
         await foodToUpdate.save();
         res.status(200).json(foodToUpdate);
     } catch (err) {
