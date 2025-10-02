@@ -1,4 +1,19 @@
 
+export interface newFoodFace {
+    title: string,
+    foodType: string,
+    author: string
+}
+
+export interface newRecipeFace {
+    title: string,
+    instructions: string,
+    ingredients: string[],
+    author: string
+}
+
+
+
 export const foodList  = [
   { id: 1, name: "cucumber", class: "vegetables" },
   { id: 2, name: "egg", class: "dairy" },

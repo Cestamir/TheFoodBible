@@ -1,33 +1,34 @@
 import React, { useState } from 'react'
+import type { Item } from './ReadItem'
+import type { foodFace } from './LandingPage';
 
-interface newFoodFace {
-    title: string,
-    url: string,
-    foodType: string,
-    author: string
+interface EditFormProps {
+  itemToDisplay: foodFace;
+  onSave: (item: Item) => void;
+  onCancel: () => void;
 }
 
-const EditFoodItem = ({itemToDisplay} : any) => {
+const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
 
-    const [editFoodItem,setEditFoodItem] = useState<newFoodFace>(itemToDisplay);
+    const [editFoodItem,setEditFoodItem] = useState<foodFace>(itemToDisplay);
 
-    const editFoodItemChange = (e: any) => {
+    const editFoodItemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const changeTarget = e.target.id;
         const value = e.target.value;
         if(changeTarget === "edit-food-title"){
-            setEditFoodItem((prev) => ({
+            setEditFoodItem((prev : foodFace) => ({
                 ...prev,title: value
             }))
         } else if(changeTarget === "edit-food-type"){
-            setEditFoodItem((prev) => ({
+            setEditFoodItem((prev : foodFace) => ({
                 ...prev,foodType: value
             }))
         } else if(changeTarget === "edit-food-url"){
-            setEditFoodItem((prev) => ({
+            setEditFoodItem((prev : foodFace) => ({
                 ...prev,url: value
             }))
         } else if(changeTarget === "edit-food-author"){
-            setEditFoodItem((prev) => ({
+            setEditFoodItem((prev : foodFace) => ({
                 ...prev,author: value
             }))
         }
@@ -44,6 +45,7 @@ const EditFoodItem = ({itemToDisplay} : any) => {
         if(res.ok){
             const updatedFood = await res.json();
             console.log("updated successfully",updatedFood)
+            onSave(updatedFood)
         } else {
             console.log("failed to update food")
         }
@@ -67,6 +69,7 @@ const EditFoodItem = ({itemToDisplay} : any) => {
             <label>Edit food author :</label>
             <input value={editFoodItem?.author} onChange={editFoodItemChange} id='edit-food-author'/>
             <button type='submit' >Confirm Edit 👍</button>
+            <button onClick={onCancel}>Cancel X</button>
         </form>
     </div>
   )

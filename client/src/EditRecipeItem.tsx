@@ -1,21 +1,16 @@
 import React, { useState } from 'react'
+import type { Item } from './ReadItem'
+import type { recipeFace } from './LandingPage'
 
-
-
-interface newRecipeFace {
-    title: string,
-    instructions: string,
-    ingredients: string[],
-    author: string
-    cookTime: string
-    url: string
-    image: string
-    createdAt: string
+interface EditFormProps {
+  itemToDisplay: recipeFace;
+  onSave: (item: Item) => void;
+  onCancel: () => void;
 }
 
-const EditRecipeItem = ({itemToDisplay} : any) => {
+const EditRecipeItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
 
-    const [editRecipe,setEditRecipe] = useState<newRecipeFace>(itemToDisplay);
+    const [editRecipe,setEditRecipe] = useState<recipeFace>(itemToDisplay);
 
     const handleRecipeEdit = async (e : React.FormEvent,id: any) => {
         try{
@@ -25,6 +20,7 @@ const EditRecipeItem = ({itemToDisplay} : any) => {
             if(res.ok){
                 const updatedRecipe = await res.json();
                 console.log("Recipe updated successfully",updatedRecipe)
+                onSave(updatedRecipe)
             } else {
                 console.log("failed to update recipe",res)
             }
@@ -35,7 +31,7 @@ const EditRecipeItem = ({itemToDisplay} : any) => {
         }
     }
 
-    const editRecipeItemChange = (e : any) => {
+    const editRecipeItemChange = (e : React.ChangeEvent<HTMLInputElement>) => {
         const changeTarget = e.target.id;
         const value = e.target.value
         if(changeTarget === "edit-recipe-title"){
@@ -88,6 +84,7 @@ const EditRecipeItem = ({itemToDisplay} : any) => {
             <label>Edit recipe author :</label>
             <input value={editRecipe?.author} onChange={editRecipeItemChange} id='edit-recipe-author'/>
             <button type='submit' >Confirm Edit 👌</button>
+            <button onClick={onCancel}>Cancel X</button>
         </form>
     </div>
   )

@@ -36,6 +36,7 @@
 #search-item-grid{
   grid-template: 1fr 1fr 1fr 1fr 1fr / 1fr 1fr 1fr 1fr 1fr;
   gap: 20px;
+  display: grid;
 }
 
 #recipes {
