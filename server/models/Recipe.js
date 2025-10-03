@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
 
 const recipeSchema = new mongoose.Schema ({
+    type: {type:String, default: "recipe"},
     title: {type:String,required: true},
     instructions: {type:String,required: true},
     ingredients: {type:[String],required: true},

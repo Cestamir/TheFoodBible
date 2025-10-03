@@ -70,6 +70,8 @@ async function scrapeFoods(){
         const FULL_URL = `${BASE_URL}${href}`;
         const foodType = await getFoodTypeFromPage(FULL_URL);
 
+        const type = "food";
+
         const exists = await collection.findOne({title})
         if(exists){
             console.log(`skipping duplicate value ${title}`)
@@ -80,6 +82,7 @@ async function scrapeFoods(){
 
 
         const doc = {
+            type,
             title,
             foodType,
             url,

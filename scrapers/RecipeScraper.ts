@@ -56,6 +56,8 @@ async function getRecipesFromPage(url: string){
     const title : string = recipeData.name || "Untitiled"
     const ingredients : string[] = recipeData.recipeIngredient || [];
 
+    const type = "recipe";
+
     let instructions: string;
 
     // joining the data from instructions to string
@@ -70,6 +72,7 @@ async function getRecipesFromPage(url: string){
     const author = getAuthor(recipeData);
 
     return {
+        type,
         title,
         ingredients,
         instructions,

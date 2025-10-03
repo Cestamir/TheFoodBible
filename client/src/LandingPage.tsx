@@ -15,7 +15,7 @@ export interface recipeFace {
     cookTime: string
     url: string
     image: string
-    createdAt: string
+    createdAt: Date
 }
 
 export interface foodFace {
@@ -25,6 +25,7 @@ export interface foodFace {
     url: string,
     foodType: string,
     author: string
+    createdAt: Date
 }
 
 type items = foodFace | recipeFace;
@@ -180,47 +181,7 @@ const LandingPage = () => {
             </div>}
     </div>
     <div id='display'>
-        {selectedItemId === null  ? <ItemsDisplay items={itemsList} onSelectItem={setSelectedItemId} /> : <ReadItem itemId={selectedItemId} onUpdate={updateItem} onClose={() => setSelectedItemId(null)} onDelete={deleteItem} items={itemsList} />}
-            {/* nothing works with database only real time deletion, edit wont work */}
-        {/* displays data from database in a grid - need to update the selecteditemid to work as expected */}
-            <div id='search-item-grid'>
-            {searchedItem ? displayItems.map((item) => (
-                <div onClick={() => {
-                        setItemClicked(prev => !prev)
-                        showDetail(item._id);
-                        }}>
-                    <ItemDisplay itemToDisplay={item} key={item._id}/>
-                </div>
-                )) : limitedData < 51 ? itemsList.filter((item,index) => index <25).map((item) => (
-                <>
-                
-                    <div onClick={() => {
-                        setItemClicked(prev => !prev)
-                        showDetail(item._id);
-                        }}>
-                        <ItemDisplay itemToDisplay={item} key={item._id}/>
-                    </div>
-                </>
-                // display more data if btn load more was clicked
-                )) : itemsList.filter((item,index) => index < limitedData).map((item) => (
-                    <div onClick={() => {
-                        setItemClicked(prev => !prev) 
-                        showDetail(item._id);
-                        }}>
-                        <ItemDisplay itemToDisplay={item} key={item._id}/>
-                    </div>
-                ))}
-                {/* loads more data */}
-                {searchedItem && displayItems.length < 25 ? null :<button onClick={loadMoreItems} id='load-more-btn'>LOAD MORE...</button>}
-            </div>
-            {/* item detail */}
-            <div id='search-item-detail'>
-                {itemClicked && currentItem && 
-                <div>
-                    <ReadItem itemToDisplay={currentItem}/>
-                </div>}
-            </div>
-        
+        {selectedItemId === null  ? <ItemsDisplay search={searchedItem} items={itemsList} onSelectItem={setSelectedItemId} /> : <ReadItem itemId={selectedItemId} onUpdate={updateItem} onClose={() => setSelectedItemId(null)} onDelete={deleteItem} items={itemsList} />}
     </div>
     </>
   )

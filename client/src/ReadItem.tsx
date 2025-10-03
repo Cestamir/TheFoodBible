@@ -36,7 +36,8 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) =>
         let isConfirmed = confirm(`Are you sure you want to delete ${item?.title} ?`);
 
         if(!isConfirmed) return;
-
+        const isItem = isFoodItem(item);
+        console.log(isItem)
         if(isRecipeItem(item)){
             const res = await fetch(`/api/recipes/${id}`,{method: "DELETE"})
             if(res.ok){
@@ -59,7 +60,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) =>
 
   return (
     <div id='readitem' style={readDisplay}>
-        <button onClick={() => setReadDisplay({display: "none"})}>❌ BACK</button>
+        <button onClick={() => {setReadDisplay({display: "none"});onClose()}}>❌ BACK</button>
         {isEditClicked  ? ( isFoodItem(item) ?  <EditFoodItem onSave={
             (updatedItem) => {
                 onUpdate(updatedItem)

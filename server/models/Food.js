@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
 
 const foodSchema = new mongoose.Schema ({
+    type: {type:String, default: "food"},
     title: {type:String,required: true},
     foodType: {type: String,require: true},
     url: {type: String},
