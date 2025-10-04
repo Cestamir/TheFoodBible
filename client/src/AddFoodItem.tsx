@@ -1,15 +1,27 @@
 import React, { useState } from 'react'
+import type { Item } from './ReadItem'
+
+// update the page data same as in edit, to show current data
 
 interface newFoodFace {
+    type: "food"
     title: string,
     url: string,
     foodType: string,
     author: string
 }
 
-const AddFoodItem = () => {
+interface addFoodFormProps{
+    onAdd: (item : Item) => void;
+    items: Item[];
+    onClose: () => void;
+}
 
-    const [newFood,setNewFood] = useState<newFoodFace>({title: '',foodType: '',url: '',author: ''});
+// (index):1 Form submission canceled because the form is not connected, form closes good but item di not updates
+
+const AddFoodItem = ({onAdd,items,onClose} : addFoodFormProps) => {
+
+    const [newFood,setNewFood] = useState<newFoodFace>({title: '',foodType: '',url: '',author: '',type: "food"});
 
     const [readDisplay,setReadDisplay] = useState({display: "block"})
 
@@ -22,7 +34,8 @@ const AddFoodItem = () => {
         const res = await fetch("/api/foods",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(newFood)})
         if(res.ok){
             const addedFood = await res.json();
-            console.log(addedFood)
+            onAdd(addedFood);
+            console.log("food added.",addedFood)
         } else {
             console.log("failed to add food")
         }
@@ -30,7 +43,7 @@ const AddFoodItem = () => {
             console.log(err)
         } finally {
             console.log("done")
-            setNewFood({title: '',foodType: '',url: '',author: ''})
+            setNewFood({title: '',foodType: '',url: '',author: '',type: "food"})
         }
     }
 
@@ -68,7 +81,7 @@ const AddFoodItem = () => {
             <input value={newFood?.url} onChange={newFoodChange} id='new-food-url'/>
              <label>New author name:</label>
             <input value={newFood?.author} onChange={newFoodChange} id='new-food-author'/>
-            <button type='submit' >Add Food ✅</button>
+            <button type='submit' onClick={onClose} >Add Food ✅</button>
         </form>
         <button onClick={() => setReadDisplay({display: "none"})}>❌</button>
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import ReadItem from './ReadItem';
+import ReadItem, { type Item } from './ReadItem';
 import FormEl from './AddRecipeItem';
 import AddFoodItem from './AddFoodItem';
 import ItemsDisplay from './ItemsDisplay';
@@ -98,7 +98,7 @@ const LandingPage = () => {
 
     const [selectedItemId,setSelectedItemId] = useState<string | null>(null);
 
-    const updateItem = (updatedItem : any) => {
+    const updateItem = (updatedItem : Item) => {
         setItemsList((prevItems) => prevItems.map((item) => item._id === updatedItem._id ? updatedItem : item));
     }
 
@@ -107,7 +107,7 @@ const LandingPage = () => {
         setSelectedItemId(null);
     }
 
-    const addItem = (addedItem : any) => {
+    const addItem = (addedItem : Item) => {
         setItemsList((prevItems) => [...prevItems,addedItem]);
     }
 
@@ -176,9 +176,7 @@ const LandingPage = () => {
             <FormEl/>
             </div>}
         {/* Add food  */}
-        {addItemClicked  && <div>
-            <AddFoodItem/>
-            </div>}
+        {addItemClicked  && <AddFoodItem onAdd={addItem} items={itemsList} onClose={() => setAddItemClicked(false)}/>}
     </div>
     <div id='display'>
         {selectedItemId === null  ? <ItemsDisplay search={searchedItem} items={itemsList} onSelectItem={setSelectedItemId} /> : <ReadItem itemId={selectedItemId} onUpdate={updateItem} onClose={() => setSelectedItemId(null)} onDelete={deleteItem} items={itemsList} />}

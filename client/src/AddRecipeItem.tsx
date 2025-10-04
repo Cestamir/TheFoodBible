@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 interface newRecipeFace {
+    type: "recipe"
     title: string,
     instructions: string,
     ingredients: string[],
@@ -12,7 +13,7 @@ interface newRecipeFace {
 
 const AddRecipeItem = () => {
 
-  const [newRecipe,setNewRecipe] = useState<newRecipeFace>({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: ''})
+  const [newRecipe,setNewRecipe] = useState<newRecipeFace>({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: '',type: "recipe"})
 
   const [readDisplay,setReadDisplay] = useState({display: 'block'})
 
@@ -68,6 +69,7 @@ const AddRecipeItem = () => {
           console.log(err)
       } finally {
         console.log("recipe added")
+        setNewRecipe({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: '',type: "recipe"});
       }
     }
 
