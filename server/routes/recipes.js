@@ -5,9 +5,9 @@ import Recipe from "../models/Recipe.js";
 
 router.post("/", async (req,res) => {
     const {title,instructions,ingredients,author,url,image,cookTime} = req.body;
-
+    const type = "recipe"
     try {
-        const newRecipe = new Recipe({title,instructions,ingredients,author,url,image,cookTime});
+        const newRecipe = new Recipe({type,title,instructions,ingredients,author,url,image,cookTime});
         await newRecipe.save();
         res.status(201).json(newRecipe)
     } catch (err) {

@@ -3,7 +3,7 @@ import ReadItem, { type Item } from './ReadItem';
 import FormEl from './AddRecipeItem';
 import AddFoodItem from './AddFoodItem';
 import ItemsDisplay from './ItemsDisplay';
-import ItemDisplay from './ItemDisplay';
+import ControlPanel from './ControlPanel';
 
 export interface recipeFace {
     type: "recipe",
@@ -33,7 +33,6 @@ type items = foodFace | recipeFace;
 const LandingPage = () => {
 
     // get data from the db
-
     const [recipes,setRecipes] = useState<recipeFace[]>([]);
     const [foods,setFoods] = useState<foodFace[]>([])
 
@@ -62,8 +61,7 @@ const LandingPage = () => {
         }
     },[foods,recipes])
 
-    // server testing
-
+    // node server running test
     const [message,setMessage] = useState<string>("");
 
     useEffect(() => {
@@ -75,17 +73,8 @@ const LandingPage = () => {
         })
     },[]);
 
-    // limited data
-
-    const [limitedData,setLimitedData] = useState<number>(50);
-
-
-    // basic values
-
+    // input entered
     const [searchedItem,setSearchedItem] = useState<string>("");
-    const [displayItems,setDisplayItems] = useState<items[]>([]);
-    const [itemClicked,setItemClicked] = useState<boolean>(false);
-    const [currentItem,setCurrentItem] = useState<items>();
 
     // default item list
     const [itemsList,setItemsList] = useState<items[]>([...foods,...recipes]);
@@ -95,7 +84,6 @@ const LandingPage = () => {
     const [addRecipeClicked,setAddRecipeClicked] = useState<boolean>(false);
 
     // functions to update the data on page
-
     const [selectedItemId,setSelectedItemId] = useState<string | null>(null);
 
     const updateItem = (updatedItem : Item) => {
@@ -111,73 +99,33 @@ const LandingPage = () => {
         setItemsList((prevItems) => [...prevItems,addedItem]);
     }
 
-
-
     // handles the change of search input and updates currently displayed items 
     const handleOnchange = (e : any) => {
-        // resets load more btn
-        setLimitedData(50);
-
         const newValue = e.target.value;
         setSearchedItem(newValue);
-
-        if(newValue){
-            showItems(newValue);
-        }
     }
 
     // testing function for search of items
     const handleSearch = () => {
         setSearchedItem("")
-        showItems(searchedItem)
-    }
-
-    // Checks for every item in #database of foods, that contains string given as param in food name
-    const showItems = (inputValue : string) => {
-        let filteredItems : items[] = itemsList.filter((item) => {
-            if (item.title.toLowerCase().includes(inputValue)){
-                return item;
-            }
-        })
-        setDisplayItems(filteredItems)
-    }
-
-    // filters a item from #database of foods, that matches id with the id given as param
-    const showDetail = (id : string) => {
-        itemsList.filter((item) => {
-            if(id == item._id){
-                setCurrentItem(item)
-                return item;
-            }
-        })
-    }
-
-    // load more items
-
-    const loadMoreItems = () => {
-        setLimitedData(prev => prev + 25);
     }
 
   return (
     <>
-    <div>{message}</div>
     <div id='search-bar'>
         <span>The Food Guide</span>
         <input id='search-field' value={searchedItem} onChange={handleOnchange}/>
         <button id='search-button' onClick={handleSearch}>Search</button>
-
         {/* add new item to list */}
-        {!addItemClicked && !addRecipeClicked ? <button id='add-item' onClick={() => {setAddItemClicked((prev) => !prev)}}>Add food item +</button> : null}
-
+        <button id='add-item' onClick={() => {setAddItemClicked((prev) => !prev)}}>Add food item +</button>
         {/* add new recipe item to the list */}
-        {!addItemClicked  && !addRecipeClicked ? <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add recipe +</button> : null}
+        <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add recipe +</button>
         {/* Add recipe  */}
-        {addRecipeClicked && <div>
-            <FormEl/>
-            </div>}
+        {addRecipeClicked && <FormEl onAdd={addItem} onClose={() => setAddRecipeClicked(false)}/>}
         {/* Add food  */}
-        {addItemClicked  && <AddFoodItem onAdd={addItem} items={itemsList} onClose={() => setAddItemClicked(false)}/>}
+        {addItemClicked  && <AddFoodItem onAdd={addItem} onClose={() => setAddItemClicked(false)}/>}
     </div>
+    <ControlPanel nodeServerRunning={message}/>
     <div id='display'>
         {selectedItemId === null  ? <ItemsDisplay search={searchedItem} items={itemsList} onSelectItem={setSelectedItemId} /> : <ReadItem itemId={selectedItemId} onUpdate={updateItem} onClose={() => setSelectedItemId(null)} onDelete={deleteItem} items={itemsList} />}
     </div>

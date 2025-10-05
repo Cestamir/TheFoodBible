@@ -11,20 +11,28 @@ interface itemsListProps{
 const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
 
 // need to add limit to reduce load time of the items
+    let filteredItems;
+    if(search.trim() === "food"){
+        filteredItems = items.filter((item) => item.type === "food")
+    } else if(search.trim() === "recipe"){
+        filteredItems = items.filter((item) => item.type === "recipe")
 
-    const filteredItems = items.filter((item) => item.title.includes(search))
+    } else {
+        filteredItems = items.filter((item) => item.title.includes(search))
+    }
+    
+    const testData = () => {
+        console.log(items)
+    }
 
   return (
     <div>
         <div id='search-item-grid'>
+            <button onClick={testData}>TEST DATA</button>
         {search === "" ? items.map(item => (
-            <div key={item._id} onClick={() => onSelectItem(item._id)}>
-                <ItemDisplay itemToDisplay={item}/>
-            </div>
+                <ItemDisplay key={item._id} onToggle={() => onSelectItem(item._id)} itemToDisplay={item}/>
         )) : filteredItems.map(item => (
-            <div key={item._id} onClick={() => onSelectItem(item._id)}>
-                <ItemDisplay itemToDisplay={item}/>
-            </div>
+                <ItemDisplay key={item._id} onToggle={() => onSelectItem(item._id)} itemToDisplay={item}/>
         ))}
         </div>
     </div>

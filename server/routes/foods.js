@@ -4,9 +4,9 @@ import Food from "../models/Food.js";
 
 router.post("/", async (req,res) => {
     const {title,foodType,author,url} = req.body;
-
+    const type = "food";
     try {
-        const newFood = new Food({title,foodType,author,url});
+        const newFood = new Food({type,title,foodType,author,url});
         await newFood.save();
         res.status(201).json(newFood)
     } catch (err) {
@@ -19,7 +19,7 @@ router.get("/", async (req,res) => {
         const foods = await Food.find();
         res.status(200).json(foods)
     } catch (err) {
-        res.status(500).json({message: "Error fetching available food"})
+        res.status(500).json({message: "Error fetching available food",error: err})
     }
 });
 

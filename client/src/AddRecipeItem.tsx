@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import type { Item } from './ReadItem'
 
 interface newRecipeFace {
     type: "recipe"
@@ -11,7 +12,12 @@ interface newRecipeFace {
     author: string
 }
 
-const AddRecipeItem = () => {
+interface addRecipeFormProps{
+    onAdd: (item: Item) => void;
+    onClose: () => void;
+}
+
+const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
 
   const [newRecipe,setNewRecipe] = useState<newRecipeFace>({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: '',type: "recipe"})
 
@@ -61,6 +67,7 @@ const AddRecipeItem = () => {
       const res = await fetch("/api/recipes",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(newRecipe)})
       if(res.ok){
           const addedRecipe = await res.json();
+          onAdd(addedRecipe)
           console.log(addedRecipe)
       } else {
           console.log("failed to add recipe")
@@ -70,6 +77,7 @@ const AddRecipeItem = () => {
       } finally {
         console.log("recipe added")
         setNewRecipe({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: '',type: "recipe"});
+        onClose();
       }
     }
 

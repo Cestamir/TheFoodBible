@@ -13,13 +13,12 @@ interface newFoodFace {
 
 interface addFoodFormProps{
     onAdd: (item : Item) => void;
-    items: Item[];
     onClose: () => void;
 }
 
 // (index):1 Form submission canceled because the form is not connected, form closes good but item di not updates
 
-const AddFoodItem = ({onAdd,items,onClose} : addFoodFormProps) => {
+const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
 
     const [newFood,setNewFood] = useState<newFoodFace>({title: '',foodType: '',url: '',author: '',type: "food"});
 
@@ -44,6 +43,7 @@ const AddFoodItem = ({onAdd,items,onClose} : addFoodFormProps) => {
         } finally {
             console.log("done")
             setNewFood({title: '',foodType: '',url: '',author: '',type: "food"})
+            onClose();
         }
     }
 
@@ -81,7 +81,7 @@ const AddFoodItem = ({onAdd,items,onClose} : addFoodFormProps) => {
             <input value={newFood?.url} onChange={newFoodChange} id='new-food-url'/>
              <label>New author name:</label>
             <input value={newFood?.author} onChange={newFoodChange} id='new-food-author'/>
-            <button type='submit' onClick={onClose} >Add Food ✅</button>
+            <button type='submit' >Add Food ✅</button>
         </form>
         <button onClick={() => setReadDisplay({display: "none"})}>❌</button>
     </div>
