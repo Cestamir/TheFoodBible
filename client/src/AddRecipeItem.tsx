@@ -1,16 +1,8 @@
 import React, { useState } from 'react'
-import type { Item } from './ReadItem'
+import type { Item } from './types'
+import type { newRecipeFace } from './types';
 
-interface newRecipeFace {
-    type: "recipe"
-    title: string,
-    instructions: string,
-    ingredients: string[],
-    url: string
-    image: string
-    cookTime: string
-    author: string
-}
+
 
 interface addRecipeFormProps{
     onAdd: (item: Item) => void;

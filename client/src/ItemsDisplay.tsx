@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import ItemDisplay from './ItemDisplay';
-import type { Item } from './ReadItem';
+import type { Item } from './types';
 
 interface itemsListProps{
     items: Item[];

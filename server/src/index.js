@@ -1,6 +1,4 @@
 // imports + basic setup
-import Food from "./models/Food.js";
-import Recipe from "./models/Recipe.js";
 import dotenv from "dotenv"
 import cors from "cors"
 import mongoose from "mongoose"
@@ -21,10 +19,12 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // routes + route imports
-import foodRoutes from "./routes/foods.js"
-import recipeRoutes from "./routes/recipes.js"
+import foodRoutes from "./src/routes/foods.js"
+import recipeRoutes from "./src/routes/recipes.js"
+import authRoutes from "./routes/auth.js"
 app.use("/api/recipes",recipeRoutes);
 app.use("/api/foods",foodRoutes);
+app.use("/api/auth",authRoutes);
 
 // testing the database
 

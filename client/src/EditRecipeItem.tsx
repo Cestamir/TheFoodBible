@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import type { Item } from './ReadItem'
-import type { recipeFace } from './LandingPage'
+import type { Item } from './types'
+import type { recipeFace } from './types'
 
 interface EditFormProps {
   itemToDisplay: recipeFace;

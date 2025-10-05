@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import type {foodFace} from './LandingPage'
-import type {recipeFace} from './LandingPage'
 import EditFoodItem from './EditFoodItem';
 import EditRecipeItem from './EditRecipeItem';
 import { isFoodItem,isRecipeItem } from './types';
+import type { Item } from './types';
 
-export type Item = recipeFace | foodFace 
+
 
 interface ItemDetailProps {
   itemId: string;

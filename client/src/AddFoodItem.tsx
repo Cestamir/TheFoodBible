@@ -1,22 +1,11 @@
 import React, { useState } from 'react'
-import type { Item } from './ReadItem'
-
-// update the page data same as in edit, to show current data
-
-interface newFoodFace {
-    type: "food"
-    title: string,
-    url: string,
-    foodType: string,
-    author: string
-}
+import type { Item } from './types'
+import type { newFoodFace } from './types';
 
 interface addFoodFormProps{
     onAdd: (item : Item) => void;
     onClose: () => void;
 }
-
-// (index):1 Form submission canceled because the form is not connected, form closes good but item di not updates
 
 const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
 

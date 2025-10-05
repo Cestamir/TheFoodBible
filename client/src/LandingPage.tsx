@@ -1,32 +1,14 @@
 import { useEffect, useState } from 'react'
-import ReadItem, { type Item } from './ReadItem';
+import ReadItem from './ReadItem';
 import FormEl from './AddRecipeItem';
 import AddFoodItem from './AddFoodItem';
 import ItemsDisplay from './ItemsDisplay';
 import ControlPanel from './ControlPanel';
+import type { Item } from './types';
+import type { foodFace,recipeFace } from './types';
+import LoginPage from './LoginPage';
 
-export interface recipeFace {
-    type: "recipe",
-    _id: string,
-    title: string,
-    instructions: string,
-    ingredients: string[],
-    author: string
-    cookTime: string
-    url: string
-    image: string
-    createdAt: Date
-}
 
-export interface foodFace {
-    type: "food",
-    _id: string,
-    title: string,
-    url: string,
-    foodType: string,
-    author: string
-    createdAt: Date
-}
 
 type items = foodFace | recipeFace;
 
@@ -112,6 +94,7 @@ const LandingPage = () => {
 
   return (
     <>
+    <LoginPage/>
     <div id='search-bar'>
         <span>The Food Guide</span>
         <input id='search-field' value={searchedItem} onChange={handleOnchange}/>

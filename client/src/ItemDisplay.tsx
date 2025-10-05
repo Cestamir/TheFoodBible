@@ -1,4 +1,4 @@
-import type {Item} from './ReadItem'
+import type {Item} from './types'
 import { isRecipeItem } from './types';
 
 interface itemDisplayProps{
