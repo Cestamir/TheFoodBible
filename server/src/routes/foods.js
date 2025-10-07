@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import Food from "../../models/Food.js";
+import Food from "../models/Food.js";
 import { authenticate,authorizeRoles } from "../middleware/auth.js";
 
 router.post("/", async (req,res) => {
@@ -24,7 +24,8 @@ router.get("/", async (req,res) => {
     }
 });
 
-// added route testing protection
+// added route protection
+
 router.delete("/:id",authenticate,authorizeRoles("admin"), async (req,res) => {
     const {id} = req.params; 
     try{

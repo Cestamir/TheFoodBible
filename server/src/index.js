@@ -19,8 +19,8 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // routes + route imports
-import foodRoutes from "./src/routes/foods.js"
-import recipeRoutes from "./src/routes/recipes.js"
+import foodRoutes from "./routes/foods.js"
+import recipeRoutes from "./routes/recipes.js"
 import authRoutes from "./routes/auth.js"
 app.use("/api/recipes",recipeRoutes);
 app.use("/api/foods",foodRoutes);

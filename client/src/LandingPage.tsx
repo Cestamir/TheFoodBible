@@ -22,6 +22,7 @@ const LandingPage = () => {
         const loadData = async () => {
             try{
             const recipes = await fetch(`/api/recipes`);
+            console.log(recipes)
             const recipesData = await recipes.json();
             const foods = await fetch("/api/foods");
             const foodsData = await foods.json();

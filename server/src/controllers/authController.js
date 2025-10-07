@@ -1,7 +1,6 @@
-import {Request,Response} from "express"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
-import {User} from "../models/User"
+import User from "../models/User.js"
 
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -12,7 +11,7 @@ export const registerUser = async (req,res) => {
     const existingUser = await User.findOne({userName});
     if(existingUser) return res.status(400).json({message: "User already exists"});
 
-    const hashed = bcrypt.hash(password,20);
+    const hashed = await bcrypt.hash(password,20);
     const user = new User({userName,userEmail,password: hashed,role});
     await user.save()
 
@@ -26,7 +25,7 @@ export const loginUser = async (req,res) => {
     const user = await User.findOne({userName});
     if(!user) return res.status(400).json({message: "Invalid username credentials"});
 
-    const match = await bcrypt.match(password,user.password);
+    const match = await bcrypt.compare(password,user.password);
     if(!match) return res.status(400).json({message: "Invalid password"});
 
     const token = jwt.sign({id: user._id,role: user.role},JWT_SECRET,{expiresIn: "1h"});
