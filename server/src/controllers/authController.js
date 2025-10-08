@@ -2,9 +2,6 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import User from "../models/User.js"
 
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
 export const registerUser = async (req,res) => {
     const {userName,password,userEmail,role} = req.body;
 
@@ -21,6 +18,7 @@ export const registerUser = async (req,res) => {
 
 export const loginUser = async (req,res) => {
     const {userName,password} = req.body;
+    const JWT_SECRET = process.env.JWT_SECRET;
 
     const user = await User.findOne({userName});
     if(!user) return res.status(400).json({message: "Invalid username credentials"});

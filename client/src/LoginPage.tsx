@@ -53,28 +53,42 @@ const LoginPage = () => {
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-    //     Error: secretOrPrivateKey must have a value
-    // at module.exports [as sign] (/Users/mp/Desktop/THEFOODGUIDEBOOK/server/node_modules/jsonwebtoken/sign.js:111:20)
-    // at loginUser (file:///Users/mp/Desktop/THEFOODGUIDEBOOK/server/src/controllers/authController.js:31:23)
         const formId = e.target.id
-        let reqToSend;
         e.preventDefault()
         if(formId === "loginform"){
-            reqToSend = loginUser;
-        } else if(formId === "registerform"){
-            reqToSend = registerUser;
-        }
-        try{
-            const res = await fetch("/api/auth",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(reqToSend)})
-            if(res.ok){
-                console.log("user login successfully")
-            } else{
-                console.log("failed to login")
-            }
+            try{
+                const res = await fetch("/api/auth/login",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(loginUser)})
+                if(res.ok){
+                    const login = await res.json();
+                    console.log("user login successfully token: ",login)
+                } else{
+                    console.log("failed to login")
+                }
 
-        }catch(err){
-            console.log(err)
+            }catch(err){
+                console.log(err)
+            } finally {
+                setLoginUser({userName: "",password: ""})
+            }
+        } else if(formId === "registerform"){
+            try{
+                const res = await fetch("/api/auth/register",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(registerUser)})
+                if(res.ok){
+                    const register = await res.json();
+                    console.log("user registered successfully token: ",register)
+                } else{
+                    console.log("failed to register new user.")
+                }
+
+            }catch(err){
+                console.log(err)
+            } finally {
+                setRegisterUser({userName: "",password: "",userEmail: ""})
+            }
         }
+        
+
+
     }
 
 

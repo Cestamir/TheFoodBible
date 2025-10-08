@@ -1,20 +1,39 @@
 // imports + basic setup
 import dotenv from "dotenv"
+// crucial part for .env
+dotenv.config({path: '../.env'})
+
+// debug tools for .env
+
+// import { fileURLToPath } from 'url';
+// import { dirname, join } from 'path';
+// import { existsSync, readFileSync } from 'fs';
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
+
+// console.log('📂 Current file:', __filename);
+// console.log('📂 Current directory:', __dirname);
+// console.log('📂 Process CWD (where you ran npm):', process.cwd());
+
 import cors from "cors"
 import mongoose from "mongoose"
 import express from "express"
 const app = express();
 
-dotenv.config()
-
 const PORT = process.env.PORT || 5050;
+const MONGO_URI = process.env.MONGO_URI;
 
 app.use(cors());
 app.use(express.json());
 
+// test
+
+console.log('All env vars:', process.env.JWT_SECRET);
+
 // mongodb setup
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 

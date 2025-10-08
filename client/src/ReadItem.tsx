@@ -38,15 +38,30 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) =>
         const isItem = isFoodItem(item);
         console.log(isItem)
         if(isRecipeItem(item)){
-            const res = await fetch(`/api/recipes/${id}`,{method: "DELETE"})
-            if(res.ok){
+            try {
+                const res = await fetch(`/api/recipes/${id}`,{method: "DELETE"})
+                if(res.ok){
                 console.log("recipe deleted")
+                } else {
+                    alert("cannot delete selected item.")
+                    return;
+                }
+            } catch (error) {
+                console.log(error)
             }
         } else if (isFoodItem(item)){
-            const res = await fetch(`/api/foods/${id}`,{method: "DELETE"})
-            if(res.ok){
+            try {
+                const res = await fetch(`/api/foods/${id}`,{method: "DELETE"})
+                if(res.ok){
                 console.log("food deleted")
+                } else {
+                    alert("cannot delete selected item.")
+                    return;
+                }
+            } catch (error) {
+                console.log(error)
             }
+            
         }
         setReadDisplay({display: "none"})
         onDelete(itemId)
