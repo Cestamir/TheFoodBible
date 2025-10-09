@@ -20,9 +20,11 @@ const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
     } else {
         filteredItems = items.filter((item) => item.title.includes(search))
     }
+
     
     const testData = () => {
-        console.log(items)
+        const token = localStorage.getItem("token")
+        console.log(token)
     }
 
   return (

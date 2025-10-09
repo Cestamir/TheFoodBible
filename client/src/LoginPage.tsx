@@ -1,4 +1,13 @@
 import React, { useState } from 'react'
+import {jwtDecode} from "jwt-decode"
+
+interface CustomJwtPayload {
+    role: string;
+    // Add other JWT properties you use
+    sub?: string;
+    exp?: number;
+    iat?: number;
+}
 
 // need to make it a single page for login or register
 interface login{
@@ -18,6 +27,7 @@ const LoginPage = () => {
     const [registerBtn,setRegisterBtn] = useState(false);
     const [loginUser,setLoginUser] = useState<login>({userName: "",password: ""})
     const [registerUser,setRegisterUser] = useState<register>({userName: "",password: "",userEmail: ""})
+    const [loginLoading,setLoginLoading] = useState(false)
 
     const handleChange = (e: any) => {
         const inputId = e.target.id
@@ -55,12 +65,18 @@ const LoginPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         const formId = e.target.id
         e.preventDefault()
+        setLoginLoading(true)
         if(formId === "loginform"){
             try{
                 const res = await fetch("/api/auth/login",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(loginUser)})
                 if(res.ok){
-                    const login = await res.json();
-                    console.log("user login successfully token: ",login)
+                    const loginToken = await res.json();
+                    console.log("user login successfully.")
+                    // saving token to localstorage for future use
+                    const decoded = jwtDecode<CustomJwtPayload>(loginToken.token)
+                    localStorage.setItem("token",loginToken.token);
+                    localStorage.setItem("role",decoded.role)
+                    setLoginLoading(false)
                 } else{
                     console.log("failed to login")
                 }
@@ -74,8 +90,9 @@ const LoginPage = () => {
             try{
                 const res = await fetch("/api/auth/register",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(registerUser)})
                 if(res.ok){
-                    const register = await res.json();
-                    console.log("user registered successfully token: ",register)
+                    const registerToken = await res.json();
+                    console.log("user registered successfully.",registerToken)
+                    setLoginLoading(false)
                 } else{
                     console.log("failed to register new user.")
                 }
@@ -91,9 +108,23 @@ const LoginPage = () => {
 
     }
 
+    // EXTRACT THE PAYLOAD FROM JWT TOKEN
+
+    // function parseJwt(token : string) {
+    // var base64Url = token.split('.')[1];
+    // var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    // var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+    //     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    // }).join(''));
+
+    // return JSON.parse(jsonPayload);
+    // }
+
 
   return (
-    <div>
+    <>
+        {loginLoading ? <div>Loading ..</div> :     
+        <div>
         {!registerBtn && <div id='login'>
             <p>Login</p>
             <form id='loginform' onSubmit={handleSubmit}>
@@ -117,7 +148,8 @@ const LoginPage = () => {
             </form>
         </div>}
         <button onClick={() => setRegisterBtn(prev => !prev)}>{registerBtn ? "login to existing account⬇️" : "register new user⬇️"}</button>
-    </div>
+    </div>}
+    </>
   )
 }
 
