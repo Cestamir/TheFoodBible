@@ -1,5 +1,11 @@
 import React, { useState } from 'react'
 import {jwtDecode} from "jwt-decode"
+import {useDispatch, useSelector}  from 'react-redux';
+import {login, logout} from './reduxstore/authSlice'
+// import {useNavigate} from 'react-router-dom'
+import type { RootState } from './reduxstore/store';
+
+
 
 interface CustomJwtPayload {
     role: string;
@@ -21,13 +27,17 @@ interface register{
     userEmail: string
 }
 
-const LoginPage = () => {
+const LoginPage : React.FC = () => {
+
+    const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
 
 
     const [registerBtn,setRegisterBtn] = useState(false);
     const [loginUser,setLoginUser] = useState<login>({userName: "",password: ""})
     const [registerUser,setRegisterUser] = useState<register>({userName: "",password: "",userEmail: ""})
     const [loginLoading,setLoginLoading] = useState(false)
+    const dispatch = useDispatch();
+    // const navigate = useNavigate();
 
     const handleChange = (e: any) => {
         const inputId = e.target.id
@@ -68,19 +78,29 @@ const LoginPage = () => {
         setLoginLoading(true)
         if(formId === "loginform"){
             try{
-                const res = await fetch("/api/auth/login",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(loginUser)})
+                const res = await fetch("/api/auth/login",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(loginUser)});
                 if(res.ok){
-                    const loginToken = await res.json();
-                    console.log("user login successfully.")
-                    // saving token to localstorage for future use
-                    const decoded = jwtDecode<CustomJwtPayload>(loginToken.token)
-                    localStorage.setItem("token",loginToken.token);
-                    localStorage.setItem("role",decoded.role)
+                    
+                    // console.log("user login successfully.")
+                    // const loginToken = await res.json()
+                    // const decoded = jwtDecode<CustomJwtPayload>(loginToken.token)
+                    // localStorage.setItem("token",loginToken.token);
+                    // localStorage.setItem("role",decoded.role)
+                    const { token } = await res.json();
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    dispatch(login({ token, role: payload.role }));
                     setLoginLoading(false)
-                } else{
-                    console.log("failed to login")
+                } else if(!res.ok){
+                    throw new Error("Login has failed");
                 }
+                // CANT RES TO JSON 2x, IT ONLY CAN BE DONE ONCE, OTHERWISE THROWS AN ERROR
+                // const { token } = await res.json();
+                // const payload = JSON.parse(atob(token.split('.')[1]));
+                // dispatch(login({ token, role: payload.role }));
 
+
+                // handle navigation here when page is ready ti use, need to create LOGINPAGE
+                // navigate("/")
             }catch(err){
                 console.log(err)
             } finally {
@@ -135,6 +155,9 @@ const LoginPage = () => {
             <button type='submit' id='loginbtn'>LOGIN HERE</button>
             </form>
         </div>}
+        <div>
+            <button onClick={() => dispatch(logout()) }>Logout</button>
+        </div>
         {registerBtn && <div id='register'>
             <p>Register</p>
             <form id='registerform' onSubmit={handleSubmit}>
