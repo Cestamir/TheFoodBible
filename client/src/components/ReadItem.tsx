@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import EditFoodItem from './EditFoodItem';
 import EditRecipeItem from './EditRecipeItem';
-import { isFoodItem,isRecipeItem } from './types';
-import type { Item } from './types';
+import { isFoodItem,isRecipeItem } from '../utils/types';
+import type { Item } from '../utils/types';
 
 
 

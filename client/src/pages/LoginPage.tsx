@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import {jwtDecode} from "jwt-decode"
+// import {jwtDecode} from "jwt-decode"
 import {useDispatch, useSelector}  from 'react-redux';
-import {login, logout} from './reduxstore/authSlice'
-// import {useNavigate} from 'react-router-dom'
-import type { RootState } from './reduxstore/store';
+import {login, logout} from '../reduxstore/authSlice'
+import {useNavigate} from 'react-router-dom'
+import type { RootState } from '../reduxstore/store';
 
 
 
@@ -37,7 +37,7 @@ const LoginPage : React.FC = () => {
     const [registerUser,setRegisterUser] = useState<register>({userName: "",password: "",userEmail: ""})
     const [loginLoading,setLoginLoading] = useState(false)
     const dispatch = useDispatch();
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
 
     const handleChange = (e: any) => {
         const inputId = e.target.id
@@ -100,7 +100,7 @@ const LoginPage : React.FC = () => {
 
 
                 // handle navigation here when page is ready ti use, need to create LOGINPAGE
-                // navigate("/")
+                navigate("/")
             }catch(err){
                 console.log(err)
             } finally {
@@ -140,10 +140,9 @@ const LoginPage : React.FC = () => {
     // return JSON.parse(jsonPayload);
     // }
 
-
   return (
-    <>
-        {loginLoading ? <div>Loading ..</div> :     
+    <>  
+        {loginLoading ? <div>Loading ..</div> : isAuthenticated ? <button onClick={() => dispatch(logout()) }>Logout</button> :     
         <div>
         {!registerBtn && <div id='login'>
             <p>Login</p>
@@ -155,9 +154,6 @@ const LoginPage : React.FC = () => {
             <button type='submit' id='loginbtn'>LOGIN HERE</button>
             </form>
         </div>}
-        <div>
-            <button onClick={() => dispatch(logout()) }>Logout</button>
-        </div>
         {registerBtn && <div id='register'>
             <p>Register</p>
             <form id='registerform' onSubmit={handleSubmit}>
@@ -170,7 +166,7 @@ const LoginPage : React.FC = () => {
             <button type='submit' id='registerbtn'>REGISTER HERE</button>
             </form>
         </div>}
-        <button onClick={() => setRegisterBtn(prev => !prev)}>{registerBtn ? "login to existing account⬇️" : "register new user⬇️"}</button>
+        <button onClick={() => setRegisterBtn(prev => !prev)}>{registerBtn ? "login to existing account⬇️" : "register new account"}</button>
     </div>}
     </>
   )

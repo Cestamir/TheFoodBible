@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import type { Item } from './types'
-import type { newRecipeFace } from './types';
+import type { Item } from '../utils/types'
+import type { newRecipeFace } from '../utils/types';
 
 
 

@@ -1,5 +1,5 @@
-import type {Item} from './types'
-import { isRecipeItem } from './types';
+import type {Item} from '../utils/types'
+import { isRecipeItem } from '../utils/types';
 
 interface itemDisplayProps{
   itemToDisplay: Item;

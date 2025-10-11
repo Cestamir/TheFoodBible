@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import type { Item } from './types'
-import type { recipeFace } from './types'
+import type { Item } from '../utils/types'
+import type { recipeFace } from '../utils/types'
 
 interface EditFormProps {
   itemToDisplay: recipeFace;

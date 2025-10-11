@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import ReadItem from './ReadItem';
-import FormEl from './AddRecipeItem';
-import AddFoodItem from './AddFoodItem';
-import ItemsDisplay from './ItemsDisplay';
-import ControlPanel from './ControlPanel';
-import type { Item } from './types';
-import type { foodFace,recipeFace } from './types';
+import ReadItem from '../components/ReadItem';
+import FormEl from '../components/AddRecipeItem';
+import AddFoodItem from '../components/AddFoodItem';
+import ItemsDisplay from '../components/ItemsDisplay';
+import ControlPanel from '../ControlPanel';
+import type { Item } from '../utils/types';
+import type { foodFace,recipeFace } from '../utils/types';
 import LoginPage from './LoginPage';
 
 

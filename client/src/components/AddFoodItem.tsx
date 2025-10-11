@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import type { Item } from './types'
-import type { newFoodFace } from './types';
+import type { Item } from '../utils/types'
+import type { newFoodFace } from '../utils/types';
 
 interface addFoodFormProps{
     onAdd: (item : Item) => void;
