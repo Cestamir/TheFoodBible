@@ -142,26 +142,26 @@ const LoginPage : React.FC = () => {
 
   return (
     <>  
-        {loginLoading ? <div>Loading ..</div> : isAuthenticated ? <button onClick={() => dispatch(logout()) }>Logout</button> :     
+        {loginLoading ? <div>Waiting for login/register ..</div> : isAuthenticated ? <button onClick={() => dispatch(logout()) }>Logout</button> :     
         <div>
         {!registerBtn && <div id='login'>
             <p>Login</p>
             <form id='loginform' onSubmit={handleSubmit}>
-            <label>USERNAME:</label>
+            <label htmlFor='logininput'>ENTER YOUR USERNAME:</label>
             <input minLength={3} onChange={handleChange} value={loginUser.userName} id='logininput'/>
-            <label>PASSWORD:</label>
-            <input onChange={handleChange} value={loginUser.password} id='passwordlogininput'/>
+            <label htmlFor='passwordlogininput' >ENTER YOUR PASSWORD:</label>
+            <input type='password' onChange={handleChange} value={loginUser.password} id='passwordlogininput'/>
             <button type='submit' id='loginbtn'>LOGIN HERE</button>
             </form>
         </div>}
         {registerBtn && <div id='register'>
             <p>Register</p>
             <form id='registerform' onSubmit={handleSubmit}>
-            <label>USERNAME:</label>
+            <label htmlFor='registerinput'>ENTER USERNAME:</label>
             <input minLength={3} onChange={handleChange} value={registerUser.userName} id='registerinput'/>
-            <label>PASSWORD:</label>
-            <input onChange={handleChange} value={registerUser.password} id='passwordregisterinput'/>
-            <label>USER EMAIL:</label>
+            <label htmlFor='passwordregisterinput'>ENTER PASSWORD:</label>
+            <input type='password' onChange={handleChange} value={registerUser.password} id='passwordregisterinput'/>
+            <label htmlFor='emailinput'>ENTER YOUR EMAIL:</label>
             <input type='email' onChange={handleChange} value={registerUser.userEmail} id='emailinput'/>
             <button type='submit' id='registerbtn'>REGISTER HERE</button>
             </form>

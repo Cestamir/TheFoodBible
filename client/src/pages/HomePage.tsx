@@ -22,7 +22,6 @@ const LandingPage = () => {
         const loadData = async () => {
             try{
             const recipes = await fetch(`/api/recipes`);
-            console.log(recipes)
             const recipesData = await recipes.json();
             const foods = await fetch("/api/foods");
             const foodsData = await foods.json();
@@ -56,10 +55,10 @@ const LandingPage = () => {
         })
     },[]);
 
-    // input entered
+    // input entered in search field
     const [searchedItem,setSearchedItem] = useState<string>("");
 
-    // default item list
+    // default item list, maybe assigning a value twice with the conjoined avriable above ?
     const [itemsList,setItemsList] = useState<items[]>([...foods,...recipes]);
 
     // storing the value of new item and display of the inputs to add it

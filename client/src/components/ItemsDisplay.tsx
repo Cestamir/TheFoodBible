@@ -27,6 +27,10 @@ const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
         console.log(token)
     }
 
+    if(filteredItems.length < 1) return <>No matching items.</>
+
+
+
   return (
     <div>
         <div id='search-item-grid'>
