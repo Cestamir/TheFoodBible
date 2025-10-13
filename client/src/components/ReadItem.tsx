@@ -72,6 +72,23 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) =>
         console.log(item)
     }
 
+    // functions for checking and displaying the ingredeints in recipes
+
+    function checkForIngredient(ingredient : string,ingredientInDb : string){
+        if(ingredient.includes(ingredientInDb)){
+            return ingredientInDb;
+        }
+    }
+
+    function showIngredientBasedOnName(ingredientName: string){
+        const foodIngredient = items.filter((item) => item.title === checkForIngredient(ingredientName,item.title))
+        if(foodIngredient[0]){
+            console.log(foodIngredient[0].title)
+        } else {
+            console.log("no ingredient found")
+        }
+    }
+
   return (
     <div id='readitem' style={readDisplay}>
         <button onClick={() => {setReadDisplay({display: "none"});onClose()}}>❌ BACK</button>
@@ -89,7 +106,17 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) =>
             }
         } onCancel={() => setIsEditClicked(false)} itemToDisplay={item}/> ) : (<div>
             {isFoodItem(item) && <div>{item.foodType}</div>}
-            {isRecipeItem(item) && <div>{item.instructions}</div>}
+            {isRecipeItem(item) && 
+            <div>
+                {item.instructions}
+                {/* ingredients in recipes */}
+                <div>
+                    {item.ingredients.map((ingredient) => (
+                        // <ReadItem/>
+                        <div onClick={()=>showIngredientBasedOnName(ingredient)}>{ingredient}</div>
+                    ))}
+                </div>
+            </div>}
             <button onClick={() => testRecipeValues()}>click</button>
             <button onClick={() => handleEdit()}>CHANGE</button>
             <button onClick={() => handleDelete(itemId)}>DELETE</button>
