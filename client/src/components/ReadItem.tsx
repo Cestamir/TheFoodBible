@@ -19,8 +19,24 @@ interface ItemDetailProps {
 const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDetailProps) => {
 
     const [recipeItems,setRecipeItems] = useState<Item[]>([]);
+    const [unmatchedItems,setUnmatchedItems] = useState<string[]>([]);
 
     const item = items.find((item) => item._id === itemId)
+
+    function saveUnmatchedIngredients(){
+        let unmatchedlist : any = [];
+        if(item && isRecipeItem(item)){
+            for(let i=0;i< item.ingredients.length;i++){
+                const itemIngredient = item.ingredients[i]
+
+                const match = recipeItems.find((recipe) => recipe.title === itemIngredient)
+                if(!match){
+                    unmatchedlist.push(itemIngredient)
+                }
+            }
+        }
+        return unmatchedlist;
+    }
 
     // setting the items of an item, which are already as foods in db
     useEffect(() => {
@@ -28,6 +44,8 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             try{
             if(item && isRecipeItem(item)){
                     const filteredIngredients = item.ingredients.map((ingredient) => showIngredientBasedOnName(ingredient)).filter((ingredientFound) : ingredientFound is Item => Boolean(ingredientFound));
+                    const otherItems = saveUnmatchedIngredients();
+                    setUnmatchedItems(otherItems)
                     setRecipeItems(filteredIngredients);
             }
 
@@ -138,6 +156,9 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
                 <div>
                     {recipeItems.map((recipeItem) => {
                         return <ItemDisplay key={recipeItem._id} itemToDisplay={recipeItem} onToggle={() => onSelectItem(recipeItem._id)}/>})}
+                    {unmatchedItems.map((item) => (
+                        <div key={item}>{item}</div>
+                    ))}
                 </div>
             </div>}
             <button onClick={() => testRecipeValues()}>click</button>
