@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import EditFoodItem from './EditFoodItem';
 import EditRecipeItem from './EditRecipeItem';
 import { isFoodItem,isRecipeItem } from '../utils/types';
 import type { Item } from '../utils/types';
+import ItemDisplay from './ItemDisplay';
+
 
 
 
@@ -12,17 +14,40 @@ interface ItemDetailProps {
   onUpdate: (item: Item) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
+  onSelectItem: (id : string) => void;
 }
-const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) => {
+const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDetailProps) => {
+
+    const [recipeItems,setRecipeItems] = useState<Item[]>([]);
+
+    const item = items.find((item) => item._id === itemId)
+
+    // setting the items of an item, which are already as foods in db
+    useEffect(() => {
+        const loadRecipeFoods = async () => {
+            try{
+            if(item && isRecipeItem(item)){
+                    const filteredIngredients = item.ingredients.map((ingredient) => showIngredientBasedOnName(ingredient)).filter((ingredientFound) : ingredientFound is Item => Boolean(ingredientFound));
+                    setRecipeItems(filteredIngredients);
+            }
+
+            }catch(err){
+                console.log(err)
+            }
+        }
+        loadRecipeFoods();
+    },[item])
+
 
     const [readDisplay,setReadDisplay] = useState({display: 'block'})
 
-    const item = items.find((item) => item._id === itemId)
 
     if(!item){
         return (<div>Item not found.</div>)
     }
 
+
+    // handles modification of the item selected
     const [isEditClicked,setIsEditClicked] = useState<boolean>(false);
 
     function testRecipeValues(){
@@ -83,9 +108,9 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) =>
     function showIngredientBasedOnName(ingredientName: string){
         const foodIngredient = items.filter((item) => item.title === checkForIngredient(ingredientName,item.title))
         if(foodIngredient[0]){
-            console.log(foodIngredient[0].title)
+            return foodIngredient[0];
         } else {
-            console.log("no ingredient found")
+            return;
         }
     }
 
@@ -111,10 +136,8 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate} : ItemDetailProps) =>
                 {item.instructions}
                 {/* ingredients in recipes */}
                 <div>
-                    {item.ingredients.map((ingredient) => (
-                        // <ReadItem/>
-                        <div onClick={()=>showIngredientBasedOnName(ingredient)}>{ingredient}</div>
-                    ))}
+                    {recipeItems.map((recipeItem) => {
+                        return <ItemDisplay key={recipeItem._id} itemToDisplay={recipeItem} onToggle={() => onSelectItem(recipeItem._id)}/>})}
                 </div>
             </div>}
             <button onClick={() => testRecipeValues()}>click</button>
