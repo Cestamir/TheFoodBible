@@ -25,7 +25,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
     function saveUnmatchedIngredients(){
         let unmatchedlist : any = [];
-        if(item && isRecipeItem(item)){
+        if(recipeItems && item && isRecipeItem(item)){
             for(let i=0;i< item.ingredients.length;i++){
                 const itemIngredient = item.ingredients[i]
 
@@ -43,7 +43,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         const loadRecipeFoods = async () => {
             try{
             if(item && isRecipeItem(item)){
-                    const filteredIngredients = item.ingredients.map((ingredient) => showIngredientBasedOnName(ingredient)).filter((ingredientFound) : ingredientFound is Item => Boolean(ingredientFound));
+                    const filteredIngredients : Item[] = item.ingredients.map((ingredient) => showIngredientBasedOnName(ingredient)).filter((result) : result is Item[] => Array.isArray(result)).flat();
                     const otherItems = saveUnmatchedIngredients();
                     setUnmatchedItems(otherItems)
                     setRecipeItems(filteredIngredients);
@@ -124,9 +124,9 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
     }
 
     function showIngredientBasedOnName(ingredientName: string){
-        const foodIngredient = items.filter((item) => item.title === checkForIngredient(ingredientName,item.title))
-        if(foodIngredient[0]){
-            return foodIngredient[0];
+        const foodIngredients = items.filter((item) => item.title === checkForIngredient(ingredientName,item.title))
+        if(foodIngredients){
+            return foodIngredients;
         } else {
             return;
         }

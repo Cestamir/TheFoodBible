@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import type { Item } from '../utils/types'
 import type { newFoodFace } from '../utils/types';
 
+//NEED TO FIX: on food addition, food doesnt have an id assigned 
+
 interface addFoodFormProps{
     onAdd: (item : Item) => void;
     onClose: () => void;
