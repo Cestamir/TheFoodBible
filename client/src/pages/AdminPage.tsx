@@ -8,6 +8,9 @@ const AdminPage = () => {
         AdminPage = 
         <ControlPanel nodeServerRunning='nah'/>
         <Link to={"/"}>Go back</Link>
+        <button>Populate the db with food | recipes</button>
+        <button>Add new admin | user account</button>
+        <button>Create new diet plan</button>
     </div>
   )
 }
