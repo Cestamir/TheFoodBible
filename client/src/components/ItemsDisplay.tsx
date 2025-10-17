@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import ItemDisplay from './ItemDisplay';
-import type { Item } from '../utils/types';
+import { isFoodItem, isRecipeItem, type Item } from '../utils/types';
 
 interface itemsListProps{
     items: Item[];
@@ -18,7 +18,13 @@ const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
         filteredItems = items.filter((item) => item.type === "recipe")
 
     } else {
-        filteredItems = items.filter((item) => item.title.toLowerCase().includes(search.toLowerCase()))
+        filteredItems = items.filter((item) => {
+            if(isFoodItem(item)){
+               return item.name.toLowerCase().includes(search.toLowerCase());
+            } else if(isRecipeItem(item)){
+               return item.title.toLowerCase().includes(search.toLowerCase());
+            }
+        })
     }
 
     

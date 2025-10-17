@@ -24,7 +24,10 @@ export interface newRecipeFace {
 export interface newFoodFace {
     type: "food"
     title: string,
-    url: string,
+    fcdId?: number;
+    wikiUrl: string,
+    nutrition?: object,
+    imageUrl: string,
     foodType: string,
     author: string
 }
@@ -45,9 +48,12 @@ export interface recipeFace {
 export interface foodFace {
     type: "food",
     _id: string,
-    title: string,
-    url: string,
+    name: string,
+    wikiUrl: string,
+    imageUrl?: string,
+    nutrition?: object,
+    fcdId?: number,
     foodType: string,
-    author: string
+    author?: string
     createdAt: Date
 }

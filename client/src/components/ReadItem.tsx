@@ -6,8 +6,6 @@ import type { Item } from '../utils/types';
 import ItemDisplay from './ItemDisplay';
 
 
-
-
 interface ItemDetailProps {
   itemId: string;
   items: Item[];
@@ -21,7 +19,9 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
     const [recipeItems,setRecipeItems] = useState<Item[]>([]);
     const [unmatchedItems,setUnmatchedItems] = useState<string[]>([]);
 
-    const item = items.find((item) => item._id === itemId)
+    const item : any = items.find((item) => item._id === itemId)
+
+    const nutrients = Object.entries(item.nutrition || {});
 
     const token = localStorage.getItem("token");
 
@@ -31,7 +31,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             for(let i=0;i< item.ingredients.length;i++){
                 const itemIngredient = item.ingredients[i]
 
-                const match = recipeItems.find((recipe) => recipe.title === itemIngredient)
+                const match = recipeItems.find((recipe : any) => recipe.title === itemIngredient)
                 if(!match){
                     unmatchedlist.push(itemIngredient)
                 }
@@ -77,7 +77,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
 
     const handleDelete = async (id : string) => {
-        let isConfirmed = confirm(`Are you sure you want to delete ${item?.title} ?`);
+        let isConfirmed = confirm(`Are you sure you want to delete item with id:  ${item?._id} ?`);
 
         if(!isConfirmed) return;
         if(isRecipeItem(item)){
@@ -128,7 +128,13 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
     }
 
     function showIngredientBasedOnName(ingredientName: string){
-        const foodIngredients = items.filter((item) => item.title === checkForIngredient(ingredientName,item.title))
+        const foodIngredients = items.filter((item) =>{
+            if(isRecipeItem(item)){
+                item.title === checkForIngredient(ingredientName,item.title)
+            } else if(isFoodItem(item)){
+                item.name === checkForIngredient(ingredientName,item.name)
+            }
+        })
         if(foodIngredients){
             return foodIngredients;
         } else {
@@ -152,7 +158,17 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
                 setIsEditClicked(false)
             }
         } onCancel={() => setIsEditClicked(false)} itemToDisplay={item}/> ) : (<div>
-            {isFoodItem(item) && <div>{item.foodType}</div>}
+            {isFoodItem(item) && 
+            <div>
+                <h3>{item.name}</h3>
+                <button onClick={() => console.log(item.nutrition)}>SHOW NUTRITION</button>
+                <div>
+                    {/* {nutrients ? nutrients.map(([key, val] : any) => (
+  <div key={key}>{key}: {val.value} {val.unit}</div>
+)) : "no nutrients." } */}
+                </div>
+                <p>{item.foodType}</p>
+            </div>}
             {isRecipeItem(item) && 
             <div>
                 {item.instructions}

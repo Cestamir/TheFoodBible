@@ -35,7 +35,7 @@ type Fruit = {
     wikiUrl: string;
     imageUrl?: string | undefined;
     fdcId?: number;
-    nutrition?: {[nutrient: string] : {value: number;unit: string}} 
+    nutrition?: { name: string; value: number; unit: string }[];
 }
 
 async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
@@ -137,14 +137,15 @@ async function buildFruit(meta: WikiFruitMeta): Promise<Fruit>{
         const detail = await getUsdaFoodDetail(best.fdcId);
 
         record.fdcId = best.fdcId;
-        record.nutrition = {};
+        record.nutrition = [];
 
         for(const nutrient of detail.foodNutrients || []){
             if(nutrient.value != null){
-                record.nutrition[nutrient.nutrientName] = {
+                record.nutrition.push({
+                    name: nutrient.nutrientName,
                     value: nutrient.value,
                     unit: nutrient.unitName,
-                }
+                })
             }
         }
     } catch(err){
