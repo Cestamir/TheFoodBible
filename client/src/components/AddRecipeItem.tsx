@@ -15,6 +15,8 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
 
   const [readDisplay,setReadDisplay] = useState({display: 'block'})
 
+  const token = localStorage.getItem("token")
+
 
   const newRecipeChange = (e : any) => {
     const changeTarget = e.target.id;
@@ -56,7 +58,9 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
       }
       try{
       e.preventDefault();
-      const res = await fetch("/api/recipes",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(newRecipe)})
+      const res = await fetch("/api/recipes",{method: "POST",headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`},body: JSON.stringify(newRecipe)})
       if(res.ok){
           const addedRecipe = await res.json();
           onAdd(addedRecipe)

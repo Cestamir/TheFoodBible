@@ -23,6 +23,8 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
     const item = items.find((item) => item._id === itemId)
 
+    const token = localStorage.getItem("token");
+
     function saveUnmatchedIngredients(){
         let unmatchedlist : any = [];
         if(recipeItems && item && isRecipeItem(item)){
@@ -78,11 +80,11 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         let isConfirmed = confirm(`Are you sure you want to delete ${item?.title} ?`);
 
         if(!isConfirmed) return;
-        const isItem = isFoodItem(item);
-        console.log(isItem)
         if(isRecipeItem(item)){
             try {
-                const res = await fetch(`/api/recipes/${id}`,{method: "DELETE"})
+                const res = await fetch(`/api/recipes/${id}`,{method: "DELETE",headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`}})
                 if(res.ok){
                 console.log("recipe deleted")
                 } else {
@@ -94,7 +96,9 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             }
         } else if (isFoodItem(item)){
             try {
-                const res = await fetch(`/api/foods/${id}`,{method: "DELETE"})
+                const res = await fetch(`/api/foods/${id}`,{method: "DELETE",headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`}})
                 if(res.ok){
                 console.log("food deleted")
                 } else {

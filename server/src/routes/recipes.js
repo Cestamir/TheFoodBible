@@ -2,8 +2,9 @@
 import express from "express";
 const router = express.Router();
 import Recipe from "../models/Recipe.js";
+import { authenticate,authorizeRoles } from "../middleware/auth.js";
 
-router.post("/", async (req,res) => {
+router.post("/",authenticate,authorizeRoles("admin"), async (req,res) => {
     const {title,instructions,ingredients,author,url,image,cookTime} = req.body;
     const type = "recipe"
     try {
@@ -20,13 +21,13 @@ router.get("/", async (req,res) => {
         const recipes = await Recipe.find();
         res.status(200).json(recipes)
     } catch (err) {
-        res.status(500).json({message: "Error fetching recipes"})
+        res.status(500).json({message: "Error fetching recipes from database."})
     }
 });
 
 // delete route for recipe 
 
-router.delete("/:id", async (req,res) => {
+router.delete("/:id",authenticate,authorizeRoles("admin"), async (req,res) => {
     const {id} = req.params; 
     try{
         const recipeToDelete = await Recipe.findById(id);
@@ -43,7 +44,7 @@ router.delete("/:id", async (req,res) => {
 
 // edit route for recipe
 
-router.put("/:id",async (req,res) => {
+router.put("/:id",authenticate,authorizeRoles("admin"),async (req,res) => {
     const {id} = req.params;
     const {title,instructions,ingredients,author,cookTime,url,image} = req.body;
     try{

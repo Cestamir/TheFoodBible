@@ -15,13 +15,17 @@ const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
 
     const [readDisplay,setReadDisplay] = useState({display: "block"})
 
+    const token = localStorage.getItem("token")
+
     const handleFoodSubmit = async(e : React.FormEvent) => {
         if(newFood?.title.length < 1 || newFood?.foodType.length < 1){
             return;
         }
         try{
         e.preventDefault();
-        const res = await fetch("/api/foods",{method: "POST",headers: {"Content-Type" : "application/json"},body: JSON.stringify(newFood)})
+        const res = await fetch("/api/foods",{method: "POST",headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`},body: JSON.stringify(newFood)})
         if(res.ok){
             const addedFood = await res.json();
             onAdd(addedFood);

@@ -3,7 +3,7 @@ const router = express.Router();
 import Food from "../models/Food.js";
 import { authenticate,authorizeRoles } from "../middleware/auth.js";
 
-router.post("/", async (req,res) => {
+router.post("/",authenticate,authorizeRoles("admin"), async (req,res) => {
     const {title,foodType,author,url} = req.body;
     const type = "food";
     try {
@@ -20,7 +20,7 @@ router.get("/", async (req,res) => {
         const foods = await Food.find();
         res.status(200).json(foods)
     } catch (err) {
-        res.status(500).json({message: "Error fetching available food",error: err})
+        res.status(500).json({message: "Error fetching food from database.",error: err})
     }
 });
 
@@ -41,7 +41,7 @@ router.delete("/:id",authenticate,authorizeRoles("admin"), async (req,res) => {
 
 })
 
-router.put("/:id",async (req,res) => {
+router.put("/:id",authenticate,authorizeRoles("admin"),async (req,res) => {
     const {id} = req.params;
     const {title,foodType,author,url} = req.body;
     try{

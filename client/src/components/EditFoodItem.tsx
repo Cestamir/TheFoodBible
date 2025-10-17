@@ -12,6 +12,8 @@ const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
 
     const [editFoodItem,setEditFoodItem] = useState<foodFace>(itemToDisplay);
 
+    const token = localStorage.getItem("token")
+
     const editFoodItemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const changeTarget = e.target.id;
         const value = e.target.value;
@@ -34,13 +36,15 @@ const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
         }
     }
 
-    const handleFoodEdit = async(e : React.FormEvent,id : any) => {
+    const handleFoodEdit = async(e : React.FormEvent,id : string) => {
         try{
         e.preventDefault();
 
         const editedFood = {_id: itemToDisplay?._id,title: editFoodItem?.title,foodType: editFoodItem?.foodType,url: editFoodItem?.url,author: editFoodItem?.author}
 
-        const res = await fetch(`/api/foods/${id}`,{method: "PUT", headers: {"Content-Type" : "application/json"},body: JSON.stringify({title: editedFood.title,foodType: editedFood.foodType,url: editedFood.url, author: editedFood.author})})
+        const res = await fetch(`/api/foods/${id}`,{method: "PUT", headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`},body: JSON.stringify({title: editedFood.title,foodType: editedFood.foodType,url: editedFood.url, author: editedFood.author})})
 
         if(res.ok){
             const updatedFood = await res.json();

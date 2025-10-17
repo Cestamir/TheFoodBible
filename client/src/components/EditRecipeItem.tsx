@@ -12,11 +12,15 @@ const EditRecipeItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
 
     const [editRecipe,setEditRecipe] = useState<recipeFace>(itemToDisplay);
 
+    const token = localStorage.getItem("token")
+
     const handleRecipeEdit = async (e : React.FormEvent,id: any) => {
         try{
             e.preventDefault();
             const editedRecipe = {_id: itemToDisplay?._id,title: editRecipe?.title,instructions: editRecipe?.instructions,ingredients: editRecipe?.ingredients,url: editRecipe.url,image: editRecipe.image, cookTime: editRecipe.cookTime,author: editRecipe?.author}
-            const res = await fetch(`/api/recipes/${id}`,{method: "PUT",headers: {"Content-Type" : "application/json"},body: JSON.stringify({title: editedRecipe.title,instructions: editedRecipe.instructions,ingredients: editedRecipe.ingredients,url: editedRecipe.url,image: editedRecipe.image,cookTime: editedRecipe.cookTime, author: editedRecipe.author})})
+            const res = await fetch(`/api/recipes/${id}`,{method: "PUT",headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`},body: JSON.stringify({title: editedRecipe.title,instructions: editedRecipe.instructions,ingredients: editedRecipe.ingredients,url: editedRecipe.url,image: editedRecipe.image,cookTime: editedRecipe.cookTime, author: editedRecipe.author})})
             if(res.ok){
                 const updatedRecipe = await res.json();
                 console.log("Recipe updated successfully",updatedRecipe)
