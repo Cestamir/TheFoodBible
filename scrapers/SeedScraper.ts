@@ -3,17 +3,6 @@ import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
 
-const food: {
-    title: string;
-    foodType: string;
-    calories: number;
-    nutrition: string[];
-    image: string;
-    url: string;
-    author: string;
-    createdAt: Date;
-}[] = [];
-
 dotenv.config();
 
 // basic settings
@@ -23,19 +12,27 @@ const USDA_SEARCH = "https://api.nal.usda.gov/fdc/v1/foods/search";
 const USDA_DETAIL = (fdcId: number) => `https://api.nal.usda.gov/fdc/v1/food/${fdcId}`
 const USDA_API_KEY = process.env.USDA_API_KEY!;
 
-type WikiFruitMeta = {
+type WikiSeedMeta = {
     title: string;
     fullurl: string;
     thumbnailUrl? : string;
+    fallBackImageUrl?: string | undefined;
 }
 
-type Fruit = {
+type Seed = {
     name: string;
-    foodType: "fruit";
+    foodType: "seed";
     wikiUrl: string;
     imageUrl?: string | undefined;
     fdcId?: number;
     nutrition?: { name: string; value: number; unit: string }[];
+    author: string;
+    createdAt: Date;
+}
+
+type WikiTableSeed = {
+    name: string,
+    imageUrl?: string | undefined,
 }
 
 async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
@@ -44,10 +41,45 @@ async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
     return res.json();
 }
 
-async function getFruitTitlesFromWikiPageList(): Promise<string[]>{
+async function getSeedTitlesFromWikiTables(): Promise<WikiTableSeed[]>{
+    const url = "https://en.wikipedia.org/wiki/List_of_edible_seeds";
+    const res = await fetch(url);
+    const html = await res.text();
+
+    const $ = cheerio.load(html);
+    const seeds : WikiTableSeed[] = [];
+
+    $("table.wikitable").each((_,table) => {
+        $(table).find("tr").each((_,row) => {
+            const cells = $(row).find("td")
+            if(cells.length >= 2){
+                const nameCell = $(cells[cells.length - 2]);
+                const imageCell = $(cells[cells.length - 1]);
+
+                const name = nameCell.text().trim();
+                let imageUrl : string | undefined;
+                const img = imageCell.find("img").attr("src");
+                if(img){
+                    imageUrl = img.startsWith("http") ? img : `https:${img}`
+                }
+
+                if(name){
+                    seeds.push({
+                        name,
+                        imageUrl,
+                    })
+                }
+            }
+        })
+    })
+
+    return seeds;
+}
+
+async function getSeedTitlesFromWikiPageList(): Promise<string[]>{
     const url = new URL(WIKI_API);
     url.searchParams.set("action","parse")
-    url.searchParams.set("page", "List_of_culinary_fruits");
+    url.searchParams.set("page", "List_of_edible_seeds");
     url.searchParams.set("prop", "links");
     url.searchParams.set("format", "json");
     url.searchParams.set("origin", "*");
@@ -73,10 +105,10 @@ async function getFruitTitlesFromWikiPageList(): Promise<string[]>{
 }
 
 
-async function getWikiMetadata(titles: string[]): Promise<WikiFruitMeta[]>{
+async function getWikiMetadata(titles: string[]): Promise<WikiSeedMeta[]>{
     const chunks = Array.from({length: Math.ceil(titles.length/ 40)}, (_,i) => titles.slice(i * 40,i * 40 + 40));
 
-    const results : WikiFruitMeta[] = [];
+    const results : WikiSeedMeta[] = [];
 
     for (const chunk of chunks){
         const url = new URL(WIKI_API);
@@ -121,12 +153,14 @@ async function getUsdaFoodDetail(fdcId: number): Promise<any>{
     return await fetchJson<any>(url.toString());
 }
 
-async function buildFruit(meta: WikiFruitMeta): Promise<Fruit>{
-    const record: Fruit = {
+async function buildSeed(meta: WikiSeedMeta): Promise<Seed>{
+    const record: Seed = {
         name: meta.title,
-        foodType: "fruit",
+        foodType: "seed",
         wikiUrl: meta.fullurl,
-        imageUrl: meta.thumbnailUrl,
+        imageUrl: meta.thumbnailUrl || meta.fallBackImageUrl,
+        author: "admin",
+        createdAt: new Date(),
     }
 
     try{
@@ -140,11 +174,11 @@ async function buildFruit(meta: WikiFruitMeta): Promise<Fruit>{
         record.nutrition = [];
 
         for(const nutrient of detail.foodNutrients || []){
-            if(nutrient.value != null){
+            if(nutrient.amount != null && nutrient.nutrient?.name && nutrient.nutrient.unitName){
                 record.nutrition.push({
-                    name: nutrient.nutrientName,
-                    value: nutrient.value,
-                    unit: nutrient.unitName,
+                    name: nutrient.nutrient.name,
+                    value: nutrient.amount,
+                    unit: nutrient.nutrient.unitName,
                 })
             }
         }
@@ -155,11 +189,11 @@ async function buildFruit(meta: WikiFruitMeta): Promise<Fruit>{
     return record;
 }
 
-async function saveToMongo(records: Fruit[]){
+async function saveToMongo(records: Seed[]){
  const client = new MongoClient(MONGO_URI);
   await client.connect();
   const db = client.db("myFoodDb");
-  const coll = db.collection<Fruit>("foods");
+  const coll = db.collection<Seed>("foods");
 
   const ops = records.map(rec => ({
     updateOne: {
@@ -171,7 +205,7 @@ async function saveToMongo(records: Fruit[]){
 
   if(ops.length){
     await coll.bulkWrite(ops);
-    console.log(`Saved ${ops.length} fruits to MongoDB.`);
+    console.log(`Saved ${ops.length} seeds to MongoDB.`);
   }
 
   await client.close();
@@ -180,17 +214,32 @@ async function saveToMongo(records: Fruit[]){
 
 async function main(){
     console.log("getting foods from wiki..")
-    const titles =  await getFruitTitlesFromWikiPageList();
+    const linkedTitles =  await getSeedTitlesFromWikiPageList();
+    const tableSeeds = await getSeedTitlesFromWikiTables();
+    console.log(`found ${tableSeeds.length} seeds from tables.`)
+    console.log(`Found ${linkedTitles.length} seed titles.`);
 
-    console.log(`Found ${titles.length} fruit titles.`);
-    const wikiMeta = await getWikiMetadata(titles);
+    const allTitles = Array.from(new Set([
+        ...tableSeeds.map(s => s.name),
+        ...linkedTitles
+    ]))
+
+    const wikiMeta = await getWikiMetadata(allTitles);
+
+    const wikiMetaWithFallback : WikiSeedMeta[] = wikiMeta.map(meta => {
+        const match = tableSeeds.find(s => s.name === meta.title)
+        return {
+            ...meta,
+            fallBackImageUrl: match?.imageUrl,
+        }
+    })
 
     const limit = pLimit(5);
     const records = await Promise.all(
-        wikiMeta.map(m => limit(() => buildFruit(m)))
+        wikiMetaWithFallback.map(m => limit(() => buildSeed(m)))
     )
 
-    console.log(`Processed ${records.length} fruit records.`);
+    console.log(`Processed ${records.length} seed records.`);
     await saveToMongo(records);
 }
 
@@ -198,24 +247,3 @@ main().catch((err) => {
     console.error("Error",err);
     process.exit(1);
 })
-
-// // urls to scrape fruit,vegetables,nuts and seeds,meats,herbs and spices
-
-// const urls = ["https://en.wikipedia.org/wiki/List_of_culinary_fruits","https://en.wikipedia.org/wiki/List_of_vegetables","https://en.wikipedia.org/wiki/List_of_edible_seeds","https://en.wikipedia.org/wiki/List_of_meat_dishes","https://en.wikipedia.org/wiki/List_of_culinary_herbs_and_spices"];
-
-// async function fetchHtml(url : string) : Promise<string>{
-//     const res = await fetch(url);
-//     if (!res.ok) throw new Error(`failed to fetch ${url}`)
-//     return await res.text();
-// }
-
-// async function scrapeFruits(){
-//     if(!urls[0]) return;
-//     const html = await fetchHtml(urls[0])
-//     const $ = cheerio.load(html);
-
-//     const fruits = [];
-//     let foodType = "fruit";
-
-//     $("")
-// }
