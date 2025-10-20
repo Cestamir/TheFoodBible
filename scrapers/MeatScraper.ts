@@ -5,6 +5,12 @@ import * as cheerio from "cheerio";
 
 dotenv.config();
 
+function sleep(ms: number){
+    return new Promise(resolve => setTimeout(resolve,ms))
+}
+
+let usdaRequests: number = 0;
+
 // basic settings
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
@@ -123,11 +129,21 @@ async function buildMeatFood(meta: WikiMeatFoodMeta,foodType : string): Promise<
     }
 
     try{
+        if(usdaRequests === 1000){
+            console.log("1000 request from USDA reached, wait for 1 hour")
+            await sleep(3600000);
+            usdaRequests = 0;
+        }
+
         const results = await searchUsdaByName(meta.title);
         if (results.length === 0) return record;
 
+        usdaRequests++
+
         const best = results[0];
         const detail = await getUsdaFoodDetail(best.fdcId);
+
+        usdaRequests++
 
         record.fdcId = best.fdcId;
         record.nutrition = [];
@@ -175,6 +191,7 @@ async function main(){
 
     const categoryLinks = await getMeatCategoryLinks();
     console.log(`found ${categoryLinks.length} cat links.`)
+    if(!categoryLinks.length) return;
     const limit = pLimit(5);
     let allRecords : MeatFood[] = [];
 
@@ -217,81 +234,57 @@ main().catch((err) => {
 
 
 
-async function getMeatCategoryLinks(): Promise<{title: string;url: string;foodType: string}[]>{
-    const pageUrl = "https://en.wikipedia.org/wiki/List_of_meat_dishes";
-    const res = await fetch(pageUrl);
-    const html = await res.text();
-    const $ = cheerio.load(html);
+async function getMeatCategoryLinks(): Promise<{title: string; url: string; foodType: string}[]> {
+  const pageUrl = "https://en.wikipedia.org/wiki/List_of_meat_dishes";
+  const res = await fetch(pageUrl);
+  const html = await res.text();
+  const $ = cheerio.load(html);
 
-    const accepted: { [key: string]: string } = {
+  $("div.mw-heading").each((i, el) => {
+  const h3 = $(el).find("h3").first();
+  const text = h3.text().trim();
+  console.log(`Header container #${i}: class="${$(el).attr("class")}", text="${text}"`);
+});
+
+  const accepted: { [key: string]: string } = {
     "Beef": "red meat",
     "Pork": "red meat",
     "Poultry": "poultry",
     "Fish": "seafood",
     "Goat": "red meat",
     "Lamb and mutton": "red meat",
-    //  mappings for food types
+    // Ensure these keys match exactly what appears on the page
   };
 
-    const results : {title: string;url: string;foodType: string}[] =[];
-    let inSection = false;
+  const results: { title: string; url: string; foodType: string }[] = [];
 
-    Object.keys(accepted).forEach(key => {
-        
-        const header = $(`span.mw-headline:contains("${key}")`).closest("h2, h3");
-        if (header.length) {
-        const foodType = accepted[key];
-
-        let next = header.next();
-        
-        while (next.length && next[0] && !/h2|h3/.test(next[0].name || "")) {
-            const link = next.find(`a[href*="List_of_${key.toLowerCase().replace(/ & /g, "_and_")}_dishes"]`).first();
-            if (link.length) {
-            const href = link.attr("href");
-            if (href) {
-                results.push({
-                title: key,
-                url: `https://en.wikipedia.org${href}`,
-                foodType: accepted[key]!,
-                });
-            }
-            break;
-            }
-            next = next.next();
-        }
-        }
+  for (const key of Object.keys(accepted)) {
+    const header = $(`div.mw-heading.mw-heading3`).filter((_, el) => {
+     return $(el).find("h3").first().text().trim() === key;
     });
+    if (!header.length) {
+      console.warn(`Header not found for category key: ${key}`);
+      continue;
+    }
 
-    // $("h2,h3").each((_,el) => {
-    //     const text = $(el).text().replace("[edit]","").trim();
-    //     if(/Meat dishes/i.test(text)){
-    //         inSection = true;
-    //         return;
-    //     }
-    //     if(inSection && /^See also$/i.test(text)){
-    //         inSection = false;
-    //         return;
-    //     }
-
-    //     if(inSection && accepted[text]){
-    //         let next = $(el).next();
-    //         while(next.length && next[0]?.name != "h2"){
-    //             const link = next.find("a[href^='/wiki/List_of_']").first();
-    //             if(link.length){
-    //                 const href = link.attr("href");
-    //                 if (href) {
-    //                     results.push({
-    //                         title: text,
-    //                         url: `https://en.wikipedia.org${href}`,
-    //                         foodType: accepted[text],
-    //                     })
-    //                     break;
-    //                 }
-    //             }
-    //             next = next.next();
-    //         }
-    //     }
-    // })
+    let next = header.next();
+    while (next.length && next[0] && !/^h[2-4]$/i.test(next[0].tagName)) {
+    const hatnote = next.is(".hatnote") ? next : next.find(".hatnote").first();
+    const link = hatnote.find("a[href*='/wiki/List_of_']").first();
+    if (link.length) {
+        const href = link.attr("href");
+        if (href) {
+        results.push({
+            title: key,
+            url: `https://en.wikipedia.org${href}`,
+            foodType : accepted[key]!,
+        });
+        break;
+        }
+    }
+    next = next.next();
+    }
+    }
     return results;
 }
 
@@ -305,7 +298,9 @@ async function getItemsFromCategoryPage(categoryUrl: string) : Promise<{title: s
         const href = $(el).attr("href");
         const title = $(el).attr("title");
 
-        if(href && title && !title.includes(":") && href.startsWith("/wiki/")){
+        if(href && title && !title.includes(":") && title.length < 50 &&
+      /^[A-Z]/.test(title) && !title.includes("[") &&
+      !title.includes("Wikipedia") && href.startsWith("/wiki/")){
             items.push({
                 title,
                 url : `https://en.wikipedia.org${href}`
