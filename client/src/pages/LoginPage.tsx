@@ -73,7 +73,7 @@ const LoginPage : React.FC = () => {
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-        const formId = e.target.id
+        const formId : string = e.target.id
         e.preventDefault()
         setLoginLoading(true)
         if(formId === "loginform"){

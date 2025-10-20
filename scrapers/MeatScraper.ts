@@ -3,6 +3,8 @@ import dotenv from "dotenv"
 import pLimit from "p-limit"
 import * as cheerio from "cheerio";
 
+// fetching to many lists ? need further testing..
+
 dotenv.config();
 
 function sleep(ms: number){
@@ -119,6 +121,11 @@ async function getUsdaFoodDetail(fdcId: number): Promise<any>{
 }
 
 async function buildMeatFood(meta: WikiMeatFoodMeta,foodType : string): Promise<MeatFood>{
+    if(usdaRequests === 1000){
+            console.log("1000 request from USDA reached, wait for 1 hour")
+            await sleep(3600000);
+            usdaRequests = 0;
+    }
     const record: MeatFood = {
         name: meta.title,
         foodType,
@@ -129,12 +136,6 @@ async function buildMeatFood(meta: WikiMeatFoodMeta,foodType : string): Promise<
     }
 
     try{
-        if(usdaRequests === 1000){
-            console.log("1000 request from USDA reached, wait for 1 hour")
-            await sleep(3600000);
-            usdaRequests = 0;
-        }
-
         const results = await searchUsdaByName(meta.title);
         if (results.length === 0) return record;
 
@@ -226,14 +227,6 @@ async function main(){
     await saveToMongo(allRecords);
 }
 
-main().catch((err) => {
-    console.error("Error",err);
-    process.exit(1);
-})
-
-
-
-
 async function getMeatCategoryLinks(): Promise<{title: string; url: string; foodType: string}[]> {
   const pageUrl = "https://en.wikipedia.org/wiki/List_of_meat_dishes";
   const res = await fetch(pageUrl);
@@ -319,3 +312,13 @@ async function getItemsFromCategoryPage(categoryUrl: string) : Promise<{title: s
 
     // return Array.from(new Set(items.map((i) => JSON.stringify(i)))).map(string => JSON.parse(string) as {title: string;url: string});
 }
+
+main().catch((err) => {
+    console.error("Error",err);
+    process.exit(1);
+})
+
+
+
+
+
