@@ -120,6 +120,14 @@ async function getUsdaFoodDetail(fdcId: number): Promise<any>{
     return await fetchJson<any>(url.toString());
 }
 
+async function throttleUsda(){
+    if(usdaRequests === 1000){
+            console.log("1000 request from USDA reached, wait for 1 hour")
+            await sleep(3600000);
+            usdaRequests = 0;
+    }
+}
+
 async function buildMeatFood(meta: WikiMeatFoodMeta,foodType : string): Promise<MeatFood>{
     if(usdaRequests === 1000){
             console.log("1000 request from USDA reached, wait for 1 hour")
@@ -136,11 +144,13 @@ async function buildMeatFood(meta: WikiMeatFoodMeta,foodType : string): Promise<
     }
 
     try{
+        await throttleUsda();
         const results = await searchUsdaByName(meta.title);
         if (results.length === 0) return record;
 
         usdaRequests++
 
+        await throttleUsda();
         const best = results[0];
         const detail = await getUsdaFoodDetail(best.fdcId);
 
