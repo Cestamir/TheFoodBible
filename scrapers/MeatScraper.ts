@@ -179,7 +179,7 @@ async function saveToMongo(records: MeatFood[]){
  const client = new MongoClient(MONGO_URI);
   await client.connect();
   const db = client.db("myFoodDb");
-  const coll = db.collection<MeatFood>("foods");
+  const coll = db.collection<MeatFood>("meats");
 
   const ops = records.map(rec => ({
     updateOne: {

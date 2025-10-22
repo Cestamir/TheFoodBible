@@ -34,7 +34,9 @@ console.log('All env vars:', process.env.JWT_SECRET);
 // mongodb setup
 
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
+  .then(() => {
+    console.log('✅ MongoDB connected')
+    console.log('📂 Database:', mongoose.connection.db.databaseName);})
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // routes + route imports

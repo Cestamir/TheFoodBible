@@ -91,6 +91,7 @@ const LoginPage : React.FC = () => {
                     dispatch(login({ token, role: payload.role }));
                     setLoginLoading(false)
                 } else if(!res.ok){
+                    setLoginLoading(false)
                     throw new Error("Login has failed");
                 }
                 // CANT RES TO JSON 2x, IT ONLY CAN BE DONE ONCE, OTHERWISE THROWS AN ERROR

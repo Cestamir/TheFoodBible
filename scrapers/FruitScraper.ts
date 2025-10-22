@@ -1,18 +1,6 @@
-import * as cheerio from "cheerio"
 import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
-
-const food: {
-    title: string;
-    foodType: string;
-    calories: number;
-    nutrition: string[];
-    image: string;
-    url: string;
-    author: string;
-    createdAt: Date;
-}[] = [];
 
 dotenv.config();
 
@@ -163,7 +151,7 @@ async function saveToMongo(records: Fruit[]){
  const client = new MongoClient(MONGO_URI);
   await client.connect();
   const db = client.db("myFoodDb");
-  const coll = db.collection<Fruit>("foods");
+  const coll = db.collection<Fruit>("fruits");
 
   const ops = records.map(rec => ({
     updateOne: {

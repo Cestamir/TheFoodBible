@@ -6,9 +6,9 @@ const foodSchema = new mongoose.Schema ({
     foodType: {type: String,required: true},
     wikiUrl: {type: String},
     fcdId: {type: Number},
-    nutrition: {type: Object},
+    nutrition: {type: [Object]},
     imageUrl: {type: String},
-    author: {type: String},
+    author: {type: String,default: "admin"},
     createdAt: {type: Date, default: Date.now}
 })
 
