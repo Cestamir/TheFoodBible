@@ -14,7 +14,6 @@ const ItemDisplay = ({itemToDisplay,onToggle}: itemDisplayProps) => {
         {isFoodItem(itemToDisplay) && itemToDisplay.imageUrl != null ? <div>
           <img width={32} height={32} src={itemToDisplay.imageUrl}/>
           </div> : <div>🥗</div>}
-        {isRecipeItem(itemToDisplay) ? itemToDisplay.image ? <div>✅</div> : <div>❌</div> : null}
     </div>
   )
 }

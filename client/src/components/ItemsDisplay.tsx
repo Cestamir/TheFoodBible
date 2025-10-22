@@ -23,16 +23,25 @@ const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
             filteredItems = items.filter((item) => item.type === "recipe");
             break;
         case "fruit":
-            filteredItems = items.filter(item => isFoodItem(item) && item.foodType === "fruit");
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "fruit");
             break;
         case "vegetable":
-            filteredItems = items.filter(item => isFoodItem(item) && item.foodType === "vegetable");
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "vegetable");
             break;
         case "meat":
-            filteredItems = items.filter(item => isFoodItem(item) && item.foodType === "meat");
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "meat");
             break;
         case "seed":
-            filteredItems = items.filter(item => isFoodItem(item) && item.foodType === "seed");
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "seed");
+            break;
+        case "herbs and spices":
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "herbs and spices");
+            break;
+        case "vegetarian":
+            filteredItems = items.filter(item => isFoodItem(item) && (item.foodType.toLowerCase() === "vegetable" || item.foodType === "seed" || item.foodType === "fruit" || item.foodType === "herbs and spices"));
+            break;
+        case "carnivorous":
+            filteredItems = items.filter(item => isFoodItem(item) && (item.foodType.toLowerCase() === "meat" || item.foodType.toLowerCase() === "beef" || item.foodType.toLowerCase() === "pork" || item.foodType.toLowerCase() === "lamb and mutton"));
             break;
         default:
             filteredItems = items.filter((item) => {
@@ -66,7 +75,7 @@ const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
             ))}
         </div>
         {hasMoreItems && (
-            <button onClick={() => loadMore} style={{margin: "20px auto",display: "block"}}>
+            <button onClick={() => loadMore()} style={{margin: "20px auto",display: "block"}}>
                 Load more ({itemsToDisplay.length - visibleCount} remaining) 
             </button>
         )}

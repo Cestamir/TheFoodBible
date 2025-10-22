@@ -4,7 +4,8 @@ import EditRecipeItem from './EditRecipeItem';
 import { isFoodItem,isRecipeItem } from '../utils/types';
 import type { Item } from '../utils/types';
 import ItemDisplay from './ItemDisplay';
-
+import { useSelector } from 'react-redux';
+import type { RootState } from '../reduxstore/store';
 
 interface ItemDetailProps {
   itemId: string;
@@ -16,12 +17,13 @@ interface ItemDetailProps {
 }
 const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDetailProps) => {
 
+
+    const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
+
     const [recipeItems,setRecipeItems] = useState<Item[]>([]);
     const [unmatchedItems,setUnmatchedItems] = useState<string[]>([]);
 
     const item : any = items.find((item) => item._id === itemId)
-
-    const nutrients = Object.entries(item.nutrition || {});
 
     const token = localStorage.getItem("token");
 
@@ -159,17 +161,28 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             }
         } onCancel={() => setIsEditClicked(false)} itemToDisplay={item}/> ) : (<div>
             {isFoodItem(item) && 
+            // item is type of food
             <div>
-                <h3>{item.name}</h3>
-                <button onClick={() => console.log(item.nutrition)}>SHOW NUTRITION</button>
-                <div>
-                    {/* {nutrients ? nutrients.map(([key, val] : any) => (
-  <div key={key}>{key}: {val.value} {val.unit}</div>
-)) : "no nutrients." } */}
+                <h2>{item.name}</h2>
+                <h3>{item.foodType}</h3>
+                {item.fdcId ? <h4>{item.fdcId}</h4> : <h4>No fdcId.</h4>}
+                {item.imageUrl != null ? <div>
+                <img width={32} height={32} src={item.imageUrl}/>
+                </div> : <div>🥗</div>}
+
+                {item.wikiUrl ? <h4>Wiki url :{<a target="_blank" rel="noreferrer noopener" href={item.wikiUrl}>{item.wikiUrl}</a>}</h4> : <h4>No Wiki url.</h4>}
+                <div style={{width: "200px",height: "200px",overflowY: "scroll"}}>
+                    {item.nutrition?.length ? item.nutrition.map((nutrient) => (
+                        <span key={nutrient.name} style={{display: "block"}}>{nutrient.name} {nutrient.value}{nutrient.unit}</span>
+                    )) : <p>No nutrients available.</p>}
                 </div>
-                <p>{item.foodType}</p>
+                {role === "admin" ? <div>
+                    Date created: {item.createdAt.toString()},
+                    Author: {item.author}
+                </div> : null}
             </div>}
             {isRecipeItem(item) && 
+            // item is type of recipe
             <div>
                 {item.instructions}
                 {/* ingredients in recipes */}
@@ -182,8 +195,8 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
                 </div>
             </div>}
             <button onClick={() => testRecipeValues()}>click</button>
-            <button onClick={() => handleEdit()}>CHANGE</button>
-            <button onClick={() => handleDelete(itemId)}>DELETE</button>
+            {role === "admin" ? <button onClick={() => handleEdit()}>CHANGE</button> : null}
+            {role === "admin" ? <button onClick={() => handleDelete(itemId)}>DELETE</button> : null}
         </div>)}
     </div>
   )

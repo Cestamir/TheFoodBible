@@ -45,14 +45,20 @@ export interface recipeFace {
     createdAt: Date
 }
 
+export interface Nutrient{
+    name: string,
+    value: number,
+    unit: string,
+}
+
 export interface foodFace {
     type: "food",
     _id: string,
     name: string,
     wikiUrl: string,
     imageUrl?: string,
-    nutrition?: object,
-    fcdId?: number,
+    nutrition?: Nutrient[],
+    fdcId?: number,
     foodType: string,
     author?: string
     createdAt: Date
