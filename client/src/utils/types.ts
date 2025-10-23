@@ -10,6 +10,14 @@ export function isRecipeItem(item: Item): item is recipeFace {
     return item.type === 'recipe';
 }
 
+export interface User {
+    _id?: string,
+    userName: string,
+    password?: string,
+    userEmail: string,
+    role: string,
+}
+
 export interface newRecipeFace {
     type: "recipe"
     title: string,

@@ -43,6 +43,9 @@ mongoose.connect(MONGO_URI)
 import foodRoutes from "./routes/foods.js"
 import recipeRoutes from "./routes/recipes.js"
 import authRoutes from "./routes/auth.js"
+import userRoutes from "./routes/users.js"
+
+app.use("/api/users",userRoutes);
 app.use("/api/recipes",recipeRoutes);
 app.use("/api/foods",foodRoutes);
 app.use("/api/auth",authRoutes);
