@@ -42,14 +42,17 @@ router.delete("/:id",authenticate,authorizeRoles("admin"), async (req,res) => {
 
 router.put("/:id",authenticate,authorizeRoles("admin"),async (req,res) => {
     const {id} = req.params;
-    const {title,foodType,author,url} = req.body;
+    const {name,wikiUrl,fcdId,nutrition,foodType,author,imageUrl} = req.body;
     try{
-        const foodToUpdate = await Food.findById(id);
-        foodToUpdate.title = title;
-        foodToUpdate.foodType = foodType;
-        foodToUpdate.author = author;
-        foodToUpdate.url = url;
-        await foodToUpdate.save();
+        const foodToUpdate = await Food.findByIdAndUpdate(
+            id,
+            { name, wikiUrl, fcdId, nutrition, foodType, author, imageUrl },
+            { new: true, runValidators: true } 
+        );
+
+        if (!foodToUpdate) {
+            return res.status(404).json({ message: "Food not found in db" });
+        }
         res.status(200).json(foodToUpdate);
     } catch (err) {
         res.status(500).json({message: "Failed to update food",err})

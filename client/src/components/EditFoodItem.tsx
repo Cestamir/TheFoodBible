@@ -15,6 +15,10 @@ const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
 
     const [editFoodItem,setEditFoodItem] = useState<foodFace>(itemToDisplay);
 
+    const [editNutrientInput,setEditNutrientInput] = useState({name: "",value: 0,unit: ""});
+    const [editNutrientClicked,setEditNutrientClicked] = useState(false);
+    const [addNewNutrientClicked,setAddNewNutrientClicked] = useState(false);
+
     const token = localStorage.getItem("token")
     const navigate = useNavigate();
 
@@ -48,6 +52,40 @@ const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
         }
     }
 
+    const editNutrient = (e: React.FormEvent) => {
+        e.preventDefault();
+        setEditFoodItem((prev) => ({...prev,nutrition: [...(prev.nutrition || []),editNutrientInput]}))
+        setEditNutrientClicked(false)
+        setEditNutrientInput({name: "",value: 0,unit: ""});
+    }
+
+    const updateNutrient = (nutrient: any,e: React.FormEvent) => {
+        e.preventDefault();
+        setEditNutrientClicked(true);
+        setEditNutrientInput(nutrient);
+        const beforeEditNutrients = editFoodItem.nutrition?.filter((nut) => nut.name !== nutrient.name);
+        setEditFoodItem((prev) => ({...prev,nutrition: beforeEditNutrients}));
+
+    }
+
+    const addNutrientToFood = (e: React.FormEvent) => {
+        e.preventDefault();
+        setEditFoodItem((prev) => ({...prev,nutrition: [...(prev.nutrition || []),editNutrientInput]}));
+        setAddNewNutrientClicked(false);
+        setEditNutrientInput({name: "",value: 0,unit: ""});
+    }
+
+    const addNewNutrient = (e: React.FormEvent) => {
+        e.preventDefault();
+        setAddNewNutrientClicked(true);
+    }
+
+    const handleNutrientDelete = (nutrient: any,e: React.FormEvent) => {
+        e.preventDefault();
+        const newNutrients = editFoodItem.nutrition?.filter((nut) => nut.name !== nutrient.name);
+        setEditFoodItem((prev) => ({...prev,nutrition: newNutrients}));
+    }
+
   return (
     <div>
         <form onSubmit={(e) => handleFoodEdit(e,itemToDisplay?._id)}>
@@ -64,7 +102,43 @@ const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
             <label>Edit food imageUrl :</label>
             <input value={editFoodItem?.imageUrl} onChange={(e) => setEditFoodItem((prev) => ({...prev,imageUrl: e.target.value}))} id='edit-food-imageurl'/>
             <label>Edit food nutrition :</label>
-            <input value={editFoodItem?.nutrition} onChange={(e) => setEditFoodItem((prev) => ({...prev,imageUrl: e.target.value}))} id='edit-food-nutrition'/>
+            <div id='edit-food-nutrition' style={{width: "200px",height: "200px",overflowY: "scroll"}}>
+                <button onClick={(e) => addNewNutrient(e)}>Add new nutrient</button>
+                {/* add new nutrient */}
+                {addNewNutrientClicked && <div>
+                    <input min={1} value={editNutrientInput.name} onChange={(e) => setEditNutrientInput(prev => ({...prev,name: e.target.value})) } id='add-nutrient-name'/>
+                    <input type='number' value={editNutrientInput.value} onChange={(e) => setEditNutrientInput(prev => ({...prev,value: Math.max(0,Number(e.target.value))})) } id='add-nutrient-value'/>
+                    <input min={1} value={editNutrientInput.unit} onChange={(e) => setEditNutrientInput(prev => ({...prev,unit: e.target.value})) } id='add-nutrient-unit'/>
+                    <button onClick={(e) =>addNutrientToFood(e)}>Add +</button> 
+                    <button onClick={(e) => {
+                        e.preventDefault();
+                        setAddNewNutrientClicked(false);
+                        setEditNutrientInput({name: "",value: 0,unit: ""});
+                    }}>Cancel</button>                   
+                    </div>}
+                {/* edit existing nutrient */}
+                {editNutrientClicked && <div>
+                    <input  value={editNutrientInput.name} onChange={(e) => setEditNutrientInput(prev => ({...prev,name: e.target.value})) } id='edit-nutrient-name'/>
+                    <input type='number' value={editNutrientInput.value} onChange={(e) => setEditNutrientInput(prev => ({...prev,value: Math.max(0,Number(e.target.value))})) } id='edit-nutrient-value'/>
+                    <input value={editNutrientInput.unit} onChange={(e) => setEditNutrientInput(prev => ({...prev,unit: e.target.value})) } id='edit-nutrient-unit'/>
+                    <button onClick={(e) =>editNutrient(e)}>Confirm Edit</button> 
+                    <button onClick={(e) => {
+                        e.preventDefault();
+                        setEditNutrientClicked(false);
+                        setEditFoodItem((prev) => ({...prev,nutrition: [...(prev.nutrition || []),editNutrientInput]}));
+                        setEditNutrientInput({name: "",value: 0,unit: ""});
+                    }}>Cancel edit</button>
+                    </div>}
+                <ul>
+                    {editFoodItem.nutrition?.map((nut,i) => (
+                        <li key={i}>
+                            {nut.name} {nut.value}{nut.unit}
+                            <button onClick={(e) => updateNutrient(nut,e)}>Edit</button>
+                            <button onClick={(e) => handleNutrientDelete(nut,e)}>Destroy!!</button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
             <button type='submit' >Confirm Edit 👍</button>
             <button onClick={onCancel}>Cancel X</button>
         </form>
