@@ -10,6 +10,16 @@ export function isRecipeItem(item: Item): item is recipeFace {
     return item.type === 'recipe';
 }
 
+export const isExpiredToken = (token: string) => {
+    try {
+    const decoded = JSON.parse(atob(token.split('.')[1]));
+    return decoded.exp * 1000 < Date.now();
+        
+    } catch {
+        return true;
+    }
+}
+
 export interface User {
     _id?: string,
     userName: string,
@@ -31,13 +41,14 @@ export interface newRecipeFace {
 
 export interface newFoodFace {
     type: "food"
-    title: string,
+    name: string,
     fcdId?: number;
     wikiUrl: string,
-    nutrition?: object,
-    imageUrl: string,
+    nutrition?: Nutrient[],
+    imageUrl?: string,
     foodType: string,
     author: string
+    createdAt: Date
 }
 
 export interface recipeFace {

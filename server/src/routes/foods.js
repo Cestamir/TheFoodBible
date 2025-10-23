@@ -4,10 +4,9 @@ import Food from "../models/Food.js";
 import { authenticate,authorizeRoles } from "../middleware/auth.js";
 
 router.post("/",authenticate,authorizeRoles("admin"), async (req,res) => {
-    const {title,foodType,author,url} = req.body;
-    const type = "food";
+    const {name,wikiUrl,fcdId,nutrition,createdAt,foodType,author,imageUrl,type} = req.body;
     try {
-        const newFood = new Food({type,title,foodType,author,url});
+        const newFood = new Food({name,wikiUrl,fcdId,nutrition,createdAt,foodType,author,imageUrl,type});
         await newFood.save();
         res.status(201).json(newFood)
     } catch (err) {
