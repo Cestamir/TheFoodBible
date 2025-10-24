@@ -210,7 +210,11 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             {isRecipeItem(item) && 
             // item is type of recipe
             <div>
+                <h2>{item.name}</h2>
                 {item.instructions}
+                Cooktime: {item.cookTime}
+                Type of recipe: {item.diet}
+                Url for recipe: <a href={item.url} target='_blank' rel="noreferrer noopener">{item.url}</a>
                 {/* ingredients in recipes */}
                 <div>
                     {recipeItems.length > 0 && recipeItems.map((recipeItem,i) => (

@@ -4,48 +4,24 @@ import AddRecipeItem from '../components/AddRecipeItem';
 import AddFoodItem from '../components/AddFoodItem';
 import ItemsDisplay from '../components/ItemsDisplay';
 import ControlPanel from '../ControlPanel';
-import type { Item } from '../utils/types';
+import { isFoodItem, isRecipeItem, type Item } from '../utils/types';
 import type { foodFace,recipeFace } from '../utils/types';
 import LoginPage from './LoginPage';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from '../reduxstore/store';
+import { addFood, addRecipe, deleteFood, deleteRecipe, updateFood, updateRecipe } from '../reduxstore/itemsSlice';
 
 type DietType = "" | "all" | "carnivorous" | "vegetarian" | "fruitarian";
 
 type items = foodFace | recipeFace;
 
-const LandingPage = () => {
-
-    // get data from the db
-    const [recipes,setRecipes] = useState<recipeFace[]>([]);
-    const [foods,setFoods] = useState<foodFace[]>([])
-
-     useEffect(() => {
-        const loadData = async () => {
-            try{
-            const recipes = await fetch(`/api/recipes`);
-            const recipesData = await recipes.json();
-            const foods = await fetch("/api/foods");
-            const foodsData = await foods.json();
-            console.log("FOODS ",foodsData)
-            setFoods(foodsData)
-            console.log("RECIPES",recipesData)
-            setRecipes(recipesData);
-            } catch (err) {
-                console.log(err)
-            }
-        }
-        loadData();
-        },[])
-
-    useEffect(() => {
-        if(foods && recipes){
-            const conjoined = [...foods,...recipes]
-            setItemsList(conjoined)
-        }
-    },[foods,recipes])
+const HomePage = () => {
+    // Redux
+    const dispatch = useDispatch();
+    const {foods,recipes,loading} = useSelector((state: RootState) => state.items);
 
     // node server running test
     const [message,setMessage] = useState<string>("");
-
     useEffect(() => {
         fetch("/api/test")
         .then(res => res.json())
@@ -54,16 +30,14 @@ const LandingPage = () => {
             console.error("error fetching data:",err)
         })
     },[]);
-
     // diet plans
-
     const [dietPlan,setDietPlan] = useState<DietType>("all");
 
     // input entered in search field
     const [searchedItem,setSearchedItem] = useState<string>("");
 
     // default item list, maybe assigning a value twice with the conjoined avriable above ?
-    const [itemsList,setItemsList] = useState<items[]>([...foods,...recipes]);
+    const itemsList = [...foods,...recipes];
 
     // storing the value of new item and display of the inputs to add it
     const [addItemClicked,setAddItemClicked] = useState<boolean>(false);
@@ -73,16 +47,31 @@ const LandingPage = () => {
     const [selectedItemId,setSelectedItemId] = useState<string | null>(null);
 
     const updateItem = (updatedItem : Item) => {
-        setItemsList((prevItems) => prevItems.map((item) => item._id === updatedItem._id ? updatedItem : item));
+        if(isRecipeItem(updatedItem)){
+            dispatch(updateRecipe(updatedItem))
+        } else if(isFoodItem(updatedItem)){
+            dispatch(updateFood(updatedItem));
+        }
     }
 
     const deleteItem = (deleteItemId : string) => {
-        setItemsList((prevItems) => prevItems.filter((item) => item._id !== deleteItemId))
+        const item = itemsList.find((item) => item._id === deleteItemId)
+        if(item){
+            if(isFoodItem(item)){
+                dispatch(deleteFood(deleteItemId))
+            } else if(isRecipeItem(item)){
+                dispatch(deleteRecipe(deleteItemId))
+            }
+        }
         setSelectedItemId(null);
     }
 
     const addItem = (addedItem : Item) => {
-        setItemsList((prevItems) => [...prevItems,addedItem]);
+        if(isFoodItem(addedItem)){
+            dispatch(addFood(addedItem))
+        } else if(isRecipeItem(addedItem)){
+            dispatch(addRecipe(addedItem))
+        }
     }
 
     // handles the change of search input and updates currently displayed items 
@@ -96,6 +85,7 @@ const LandingPage = () => {
         setSearchedItem("")
     }
 
+    if(loading) return <>Loading data...</>
     if(!foods || !recipes) return (<div>No data from database, check your connection.</div>)
 
   return (
@@ -125,10 +115,24 @@ const LandingPage = () => {
     </div>
     <ControlPanel nodeServerRunning={message}/>
     <div id='display'>
-        {selectedItemId === null  ? <ItemsDisplay dietPlanType={dietPlan} search={searchedItem} items={itemsList} onSelectItem={setSelectedItemId} /> : <ReadItem onSelectItem={setSelectedItemId} itemId={selectedItemId} onUpdate={updateItem} onClose={() => setSelectedItemId(null)} onDelete={deleteItem} items={itemsList} />}
+        {selectedItemId === null  ? 
+        
+        <ItemsDisplay 
+        dietPlanType={dietPlan} 
+        search={searchedItem} 
+        items={itemsList} 
+        onSelectItem={setSelectedItemId} /> : 
+
+        <ReadItem 
+        onSelectItem={setSelectedItemId} 
+        itemId={selectedItemId} 
+        onUpdate={updateItem} 
+        onClose={() => setSelectedItemId(null)} 
+        onDelete={deleteItem} 
+        items={itemsList} />}
     </div>
     </>
   )
 }
 
-export default LandingPage
+export default HomePage;

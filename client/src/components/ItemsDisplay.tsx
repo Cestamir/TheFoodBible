@@ -44,9 +44,50 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
         case "carnivorous":
             filteredItems = items.filter(item => isFoodItem(item) && (item.foodType.toLowerCase() === "meat" || item.foodType.toLowerCase() === "beef" || item.foodType.toLowerCase() === "pork" || item.foodType.toLowerCase() === "lamb and mutton"));
             break;
+        case "fruitarian":
+            filteredItems = items.filter(item => isFoodItem(item) && (item.foodType.toLowerCase() === "fruit"));
+            break;
         default:
-            filteredItems = items.filter((item) => {
+            let filteredItemsBySearch = items.filter((item) => {
                 return item.name?.toLowerCase().includes(search.toLowerCase()) || false;
+            })
+            filteredItems = filteredItemsBySearch.filter((item) => {
+                if(isFoodItem(item)){
+                    const typeOfFood = item.foodType.toLowerCase();
+                    switch(dietPlanType){
+                        case "carnivorous":
+                            return typeOfFood === "meat" || 
+                                typeOfFood === "beef" || 
+                                typeOfFood === "pork" || 
+                                typeOfFood === "lamb and mutton";
+                        case "vegetarian":
+                            return typeOfFood === "vegetable" || 
+                                typeOfFood === "seed" || 
+                                typeOfFood === "fruit" || 
+                                typeOfFood === "herbs and spices";
+                        case "fruitarian":
+                            return typeOfFood === "fruit" || 
+                                typeOfFood === "seed";
+                        case "all food" :
+                            return item;
+                        default:
+                            return item;
+                    }
+                } else if(isRecipeItem(item)){
+                    const typeOfRecipe = item.diet[0].toLowerCase();
+                    switch(dietPlanType){
+                        case "carnivorous":
+                            return typeOfRecipe === "carnivorous";
+                        case "vegetarian" :
+                            return typeOfRecipe === "vegetarian";
+                        case "fruitarian" :
+                            return typeOfRecipe === "fruitarian"
+                        case "all food" :
+                            return typeOfRecipe === "all food";
+                        default:
+                            return item;
+                    }
+                }
             })
             break;
     }
