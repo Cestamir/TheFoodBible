@@ -6,6 +6,8 @@ import type { Item } from '../utils/types';
 import ItemDisplay from './ItemDisplay';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../reduxstore/store';
+import { isExpiredToken } from '../utils/types';
+import { useNavigate } from 'react-router-dom';
 
 interface ItemDetailProps {
   itemId: string;
@@ -26,6 +28,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
     const item : any = items.find((item) => item._id === itemId)
 
     const token = localStorage.getItem("token");
+    const navigate = useNavigate();
 
     // function saveUnmatchedIngredients(){
     //     let unmatchedlist : any = [];
@@ -44,12 +47,11 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
     const findMatchingItems = (ingredientName: string) : Item | null => {
         const normalizedIngredient = ingredientName.toLowerCase().trim();
-        console.log(normalizedIngredient)
         const match = items.find((item) => {
             if(isFoodItem(item)){
                 return item.name.toLowerCase().includes(normalizedIngredient) || normalizedIngredient.includes(item.name.toLowerCase());
             } else if (isRecipeItem(item)){
-                return item.title.toLowerCase().includes(normalizedIngredient) || normalizedIngredient.includes(item.title.toLowerCase());
+                return item.name.toLowerCase().includes(normalizedIngredient) || normalizedIngredient.includes(item.name.toLowerCase());
             }
             return false;
         })
@@ -63,7 +65,6 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             if(item && isRecipeItem(item)){
                 const matchedItems: Item[] = [];
                 const unmatched: string[] = [];
-                console.log(item.ingredients)
 
                 item.ingredients.forEach((ingredient : string) => {
                     const match = findMatchingItems(ingredient);
@@ -119,6 +120,12 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         const endpoint = isRecipeItem(item) ? `/api/recipes/${id}` : `/api/foods/${id}`;
 
             try {
+                if(token && isExpiredToken(token)){
+                    alert("expired token please login again.")
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    navigate("/")
+                }
                 const res = await fetch(endpoint,{method: "DELETE",headers: {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${token}`}})
@@ -138,7 +145,6 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
     const handleEdit = () => {
         setIsEditClicked((prev) => !prev)
-        console.log(item)
     }
 
     // // functions for checking and displaying the ingredeints in recipes
@@ -207,10 +213,10 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
                 {item.instructions}
                 {/* ingredients in recipes */}
                 <div>
-                    {recipeItems.length > 0 && recipeItems.map((recipeItem) => (
-                        <ItemDisplay key={recipeItem._id} itemToDisplay={recipeItem} onToggle={() => onSelectItem(recipeItem._id)}/>))}
-                    {unmatchedItems.length > 0 && unmatchedItems.map((item) => (
-                        <div key={item}>{item}</div>
+                    {recipeItems.length > 0 && recipeItems.map((recipeItem,i) => (
+                        <ItemDisplay key={i+"i"} itemToDisplay={recipeItem} onToggle={() => onSelectItem(recipeItem._id)}/>))}
+                    {unmatchedItems.length > 0 && unmatchedItems.map((item,i) => (
+                        <div key={i}>{item}</div>
                     ))}
                 </div>
             </div>}

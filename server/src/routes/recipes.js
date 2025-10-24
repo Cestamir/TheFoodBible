@@ -5,10 +5,10 @@ import Recipe from "../models/Recipe.js";
 import { authenticate,authorizeRoles } from "../middleware/auth.js";
 
 router.post("/",authenticate,authorizeRoles("admin"), async (req,res) => {
-    const {title,instructions,ingredients,author,url,image,cookTime} = req.body;
+    const {name,diet,instructions,ingredients,author,url,imageUrl,cookTime} = req.body;
     const type = "recipe"
     try {
-        const newRecipe = new Recipe({type,title,instructions,ingredients,author,url,image,cookTime});
+        const newRecipe = new Recipe({type,name,instructions,ingredients,author,url,imageUrl,diet,cookTime});
         await newRecipe.save();
         res.status(201).json(newRecipe)
     } catch (err) {
@@ -46,17 +46,17 @@ router.delete("/:id",authenticate,authorizeRoles("admin"), async (req,res) => {
 
 router.put("/:id",authenticate,authorizeRoles("admin"),async (req,res) => {
     const {id} = req.params;
-    const {title,instructions,ingredients,author,cookTime,url,image} = req.body;
+    const {name,diet,instructions,ingredients,author,url,imageUrl,cookTime} = req.body;
     try{
-        const recipeToUpdate = await Recipe.findById(id);
-        recipeToUpdate.title = title;
-        recipeToUpdate.instructions = instructions;
-        recipeToUpdate.ingredients = ingredients;
-        recipeToUpdate.author = author;
-        recipeToUpdate.url = url;
-        recipeToUpdate.cookTime = cookTime;
-        recipeToUpdate.image = image;
-        await recipeToUpdate.save();
+        const recipeToUpdate = await Recipe.findByIdAndUpdate(
+            id,
+            {name,diet,instructions,ingredients,author,url,imageUrl,cookTime},
+            {new: true,runValidators:true}
+        );
+
+        if(!recipeToUpdate){
+            return res.status(404).json({ message: "Recipe not found in db" });
+        }
         res.status(200).json(recipeToUpdate);
     } catch (err) {
         res.status(500).json({message: "Failed to update recipe",err})

@@ -46,11 +46,7 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
             break;
         default:
             filteredItems = items.filter((item) => {
-            if(isFoodItem(item)){
-               return item.name.toLowerCase().includes(search.toLowerCase());
-            } else if(isRecipeItem(item)){
-               return item.title.toLowerCase().includes(search.toLowerCase());
-            }
+                return item.name?.toLowerCase().includes(search.toLowerCase()) || false;
             })
             break;
     }
@@ -64,7 +60,7 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
             case "all":
                 return items;
             case "vegetarian":
-                return items.filter((item) =>  // ✅ Add return
+                return items.filter((item) => 
                     isFoodItem(item) && ( 
                         item.foodType.toLowerCase() === "vegetable" || 
                         item.foodType.toLowerCase() === "fruit" || 

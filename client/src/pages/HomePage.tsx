@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import ReadItem from '../components/ReadItem';
-import FormEl from '../components/AddRecipeItem';
+import AddRecipeItem from '../components/AddRecipeItem';
 import AddFoodItem from '../components/AddFoodItem';
 import ItemsDisplay from '../components/ItemsDisplay';
 import ControlPanel from '../ControlPanel';
@@ -96,6 +96,8 @@ const LandingPage = () => {
         setSearchedItem("")
     }
 
+    if(!foods || !recipes) return (<div>No data from database, check your connection.</div>)
+
   return (
     <>
     <LoginPage/>
@@ -117,7 +119,7 @@ const LandingPage = () => {
             <option value="fruitarian">fruitarian</option>
         </select>
         {/* Add recipe  */}
-        {addRecipeClicked && <FormEl onAdd={addItem} onClose={() => setAddRecipeClicked(false)}/>}
+        {addRecipeClicked && <AddRecipeItem onAdd={addItem} onClose={() => setAddRecipeClicked(false)}/>}
         {/* Add food  */}
         {addItemClicked  && <AddFoodItem onAdd={addItem} onClose={() => setAddItemClicked(false)}/>}
     </div>

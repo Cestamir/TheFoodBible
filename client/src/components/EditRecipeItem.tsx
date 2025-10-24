@@ -11,16 +11,17 @@ interface EditFormProps {
 const EditRecipeItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
 
     const [editRecipe,setEditRecipe] = useState<recipeFace>(itemToDisplay);
+    const [currentIngredient,setCurrentIngredient] = useState<string>("");
 
     const token = localStorage.getItem("token")
 
     const handleRecipeEdit = async (e : React.FormEvent,id: any) => {
         try{
             e.preventDefault();
-            const editedRecipe = {_id: itemToDisplay?._id,title: editRecipe?.title,instructions: editRecipe?.instructions,ingredients: editRecipe?.ingredients,url: editRecipe.url,image: editRecipe.image, cookTime: editRecipe.cookTime,author: editRecipe?.author}
+            const editedRecipe = {_id: itemToDisplay?._id,name: editRecipe?.name,instructions: editRecipe?.instructions,ingredients: editRecipe?.ingredients,url: editRecipe.url,imageUrl: editRecipe.imageUrl, cookTime: editRecipe.cookTime,author: editRecipe?.author,diet: editRecipe.diet,createdAt: editRecipe.createdAt}
             const res = await fetch(`/api/recipes/${id}`,{method: "PUT",headers: {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`},body: JSON.stringify({title: editedRecipe.title,instructions: editedRecipe.instructions,ingredients: editedRecipe.ingredients,url: editedRecipe.url,image: editedRecipe.image,cookTime: editedRecipe.cookTime, author: editedRecipe.author})})
+    "Authorization": `Bearer ${token}`},body: JSON.stringify({name: editedRecipe?.name,instructions: editedRecipe?.instructions,ingredients: editedRecipe?.ingredients,url: editedRecipe.url,imageUrl: editedRecipe.imageUrl, cookTime: editedRecipe.cookTime,author: editedRecipe?.author,diet: editedRecipe.diet,createdAt: editedRecipe.createdAt})})
             if(res.ok){
                 const updatedRecipe = await res.json();
                 console.log("Recipe updated successfully",updatedRecipe)
@@ -35,58 +36,52 @@ const EditRecipeItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
         }
     }
 
-    const editRecipeItemChange = (e : React.ChangeEvent<HTMLInputElement>) => {
-        const changeTarget = e.target.id;
-        const value = e.target.value
-        if(changeTarget === "edit-recipe-title"){
-            setEditRecipe((prev) => ({
-                ...prev, title: value
-            }))
-        } else if (changeTarget === "edit-recipe-instructions"){
-            setEditRecipe((prev) => ({
-                ...prev, instructions: value
-            }))
-        } else if (changeTarget === "edit-recipe-ingredients"){
-            setEditRecipe((prev) => ({
-                ...prev,ingredients: value.split(", ")
-            }))
-        } else if (changeTarget === "edit-recipe-url"){
-            setEditRecipe((prev) => ({
-                ...prev,url: value
-            }))
-        } else if (changeTarget === "edit-recipe-image"){
-            setEditRecipe((prev) => ({
-                ...prev,image: value
-            }))
-        } else if (changeTarget === "edit-recipe-cooktime"){
-            setEditRecipe((prev) => ({
-                ...prev,cookTime: value
-            }))
-        } else if (changeTarget === "edit-recipe-author"){
-            setEditRecipe((prev) => ({
-                ...prev,author: value
-            }))
-        }
-
-    }
-
   return (
     <div>
         <form onSubmit={(e) => handleRecipeEdit(e,itemToDisplay?._id)}>
-            <label>Edit recipe title :</label>
-            <input value={editRecipe?.title} onChange={editRecipeItemChange} id='edit-recipe-title'/>
-            <label>Edit recipe instructions :</label>
-            <input value={editRecipe?.instructions} onChange={editRecipeItemChange} id='edit-recipe-instructions'/>
-            <label>Edit recipe ingredients :</label>
-            <input value={editRecipe?.ingredients} onChange={editRecipeItemChange} id='edit-recipe-ingredients'/>
-            <label>Edit recipe url :</label>
-            <input value={editRecipe?.url} onChange={editRecipeItemChange} id='edit-recipe-url'/>
-            <label>Edit recipe image :</label>
-            <input value={editRecipe?.image} onChange={editRecipeItemChange} id='edit-recipe-image'/>
-            <label>Edit recipe cook time :</label>
-            <input value={editRecipe?.cookTime} onChange={editRecipeItemChange} id='edit-recipe-cooktime'/>
-            <label>Edit recipe author :</label>
-            <input value={editRecipe?.author} onChange={editRecipeItemChange} id='edit-recipe-author'/>
+              <label>Edit recipe name:</label>
+              <input value={editRecipe?.name} onChange={(e) => setEditRecipe((prev) => ({...prev,name: e.target.value}))} id='new-recipe-title'/>
+              <label>edit recipe instructions:</label>
+              <input value={editRecipe?.instructions} onChange={(e) => setEditRecipe((prev) => ({...prev,instructions: e.target.value}))} id='edit-recipe-instructions'/>
+              <label>edit recipe ingredients:</label>
+              <input value={currentIngredient} onChange={(e) => setCurrentIngredient(() => e.target.value )} id='edit-recipe-ingredients'/>
+              <button onClick={(e) => {
+                e.preventDefault();
+                if(currentIngredient){
+                    setEditRecipe((prev) => ({...prev,ingredients: [...(prev.ingredients || []),currentIngredient.trim()]}))
+                    setCurrentIngredient("");
+                }}}>Add ingredient +</button>
+                <div style={{width: "200px",height: "200px",overflowY: "scroll"}}>
+                    <ul>
+                        {editRecipe.ingredients.map((ing,i) => (
+                            <li key={i}>
+                                Ingredeint {`${i +1}`}: {ing}
+                                <button onClick={(e) => {
+                                    e.preventDefault();
+                                    const filteredIngredients = editRecipe.ingredients.filter((ingredient) => ingredient !== ing );
+                                    setEditRecipe((prev) => ({...prev,ingredients: filteredIngredients}))
+                                }}>❌</button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+              <label>edit recipe url:</label>
+              <input value={editRecipe?.url} onChange={(e) => setEditRecipe((prev) => ({...prev,url: e.target.value}))} id='edit-recipe-url'/>
+              <label>edit recipe image:</label>
+              <input value={editRecipe?.imageUrl} onChange={(e) => setEditRecipe((prev) => ({...prev,imageUrl: e.target.value}))} id='edit-recipe-image'/>
+              <label>edit recipe diet:</label>
+                <select value={editRecipe.diet[0]} onChange={(e : any) => setEditRecipe((prev) => ({...prev,diet: [e.target.value]}) )} id='edit-recipe-diet'>
+                    <option value="">--Please choose an option--</option>
+                    <option value="all">All food</option>
+                    <option value="carnivorous">carnivorous</option>
+                    <option value="vegetarian">vegetarian</option>
+                    <option value="fruitarian">fruitarian</option>
+                </select>             
+              <label>edit recipe cook time:</label>
+              <input placeholder='22s' value={editRecipe?.cookTime} onChange={(e) => setEditRecipe((prev) => ({...prev,cookTime: e.target.value}))} id='edit-recipe-cooktime'/>
+              <label>edit recipe author:</label>
+              <input value={editRecipe?.author} onChange={(e) => setEditRecipe((prev) => ({...prev,author: e.target.value}))} id='edit-recipe-author'/>
+
             <button type='submit' >Confirm Edit 👌</button>
             <button onClick={onCancel}>Cancel X</button>
         </form>

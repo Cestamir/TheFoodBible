@@ -30,13 +30,15 @@ export interface User {
 
 export interface newRecipeFace {
     type: "recipe"
-    title: string,
+    diet: string[],
+    name: string,
     instructions: string,
     ingredients: string[],
     url: string
-    image: string
+    imageUrl: string
     cookTime: string
     author: string
+    createdAt: Date
 }
 
 export interface newFoodFace {
@@ -52,15 +54,16 @@ export interface newFoodFace {
 }
 
 export interface recipeFace {
-    type: "recipe",
     _id: string,
-    title: string,
+    type: "recipe"
+    diet: string[],
+    name: string,
     instructions: string,
     ingredients: string[],
-    author: string
-    cookTime: string
     url: string
-    image: string
+    imageUrl: string
+    cookTime: string
+    author: string
     createdAt: Date
 }
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import type { Item } from '../utils/types'
 import type { newRecipeFace } from '../utils/types';
-
+import { isExpiredToken } from '../utils/types';
+import { useNavigate } from 'react-router-dom';
 
 
 interface addRecipeFormProps{
@@ -11,49 +12,16 @@ interface addRecipeFormProps{
 
 const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
 
-  const [newRecipe,setNewRecipe] = useState<newRecipeFace>({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: '',type: "recipe"})
+  const [newRecipe,setNewRecipe] = useState<newRecipeFace>({name:'',instructions: '',ingredients: [],url: '',imageUrl: '',cookTime: '',author: '',type: "recipe",diet: [],createdAt: new Date()})
+  const [currentIngredient,setCurrentIngredient] = useState<string>("");
 
   const [readDisplay,setReadDisplay] = useState({display: 'block'})
 
   const token = localStorage.getItem("token")
-
-
-  const newRecipeChange = (e : any) => {
-    const changeTarget = e.target.id;
-    const value = e.target.value;
-    if(changeTarget === "new-recipe-title"){
-        setNewRecipe((prev) => ({
-            ...prev,title: value
-        }))
-    } else if(changeTarget === "new-recipe-instructions"){
-        setNewRecipe((prev) => ({
-            ...prev,instructions: value
-        }))
-    } else if(changeTarget === "new-recipe-ingredients"){
-        setNewRecipe((prev) => ({
-            ...prev,ingredients: value
-        }))
-    } else if (changeTarget === "new-recipe-author"){
-        setNewRecipe((prev) => ({
-            ...prev,author: value
-        }))
-    } else if (changeTarget === "new-recipe-url"){
-        setNewRecipe((prev) => ({
-            ...prev,url: value
-        }))
-    } else if (changeTarget === "new-recipe-image"){
-        setNewRecipe((prev) => ({
-            ...prev,image: value
-        }))
-    } else if (changeTarget === "new-recipe-cooktime"){
-        setNewRecipe((prev) => ({
-            ...prev,cookTime: value
-        }))
-    }
-  }
+  const navigate = useNavigate();
 
   const handleRecipeSubmit = async(e : React.FormEvent) => {
-      if(newRecipe?.title.length < 1 || newRecipe?.instructions.length < 1 || newRecipe?.author.length < 1){
+      if(newRecipe?.name.length < 1 || newRecipe?.instructions.length < 1 || newRecipe?.diet.length < 1 || newRecipe?.ingredients.length < 1){
           return;
       }
 
@@ -63,41 +31,72 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
 
       try{
       e.preventDefault();
+        if(token && isExpiredToken(token)){
+            alert("expired token please login again.")
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
+            navigate("/")
+        }
       const res = await fetch("/api/recipes",{method: "POST",headers: {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${token}`},body: JSON.stringify(newRecipe)})
       if(res.ok){
           const addedRecipe = await res.json();
           onAdd(addedRecipe)
+        setNewRecipe({name:'',instructions: '',ingredients: [],url: '',imageUrl: '',cookTime: '',author: '',type: "recipe",diet: [],createdAt: new Date()});
+        onClose();
           console.log(addedRecipe)
       } else {
           console.log("failed to add recipe")
       }
       } catch(err){
-          console.log(err)
-      } finally {
-        setNewRecipe({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: '',type: "recipe"});
-        onClose();
-      }
+          console.log(err,"error adding new recipe.")
+    }
     }
 
   return (
     <div id='additem' style={readDisplay}>
           <form onSubmit={handleRecipeSubmit}>
               <label>New recipe name:</label>
-              <input value={newRecipe?.title} onChange={newRecipeChange} id='new-recipe-title'/>
+              <input value={newRecipe?.name} onChange={(e) => setNewRecipe((prev) => ({...prev,name: e.target.value}))} id='new-recipe-title'/>
               <label>New recipe instructions:</label>
-              <input value={newRecipe?.instructions} onChange={newRecipeChange} id='new-recipe-instructions'/>
+              <input value={newRecipe?.instructions} onChange={(e) => setNewRecipe((prev) => ({...prev,instructions: e.target.value}))} id='new-recipe-instructions'/>
               <label>New recipe ingredients:</label>
-              <input value={newRecipe?.ingredients} onChange={newRecipeChange} id='new-recipe-ingredients'/>
+              <input value={currentIngredient} onChange={(e) => setCurrentIngredient(() => e.target.value )} id='new-recipe-ingredients'/>
+              <button onClick={(e) => {
+                e.preventDefault();
+                if(currentIngredient){
+                    setNewRecipe((prev) => ({...prev,ingredients: [...(prev.ingredients || []),currentIngredient.trim()]}))
+                    setCurrentIngredient("");
+                }}}>Add ingredeint +</button>
               <label>New recipe url:</label>
-              <input value={newRecipe?.url} onChange={newRecipeChange} id='new-recipe-url'/>
+              <input value={newRecipe?.url} onChange={(e) => setNewRecipe((prev) => ({...prev,url: e.target.value}))} id='new-recipe-url'/>
               <label>New recipe image:</label>
-              <input value={newRecipe?.image} onChange={newRecipeChange} id='new-recipe-image'/>
+              <input value={newRecipe?.imageUrl} onChange={(e) => setNewRecipe((prev) => ({...prev,imageUrl: e.target.value}))} id='new-recipe-image'/>
+              <label>New recipe diet:</label>
+                <select value={newRecipe.diet[0] || ''} onChange={(e : any) => setNewRecipe((prev) => ({...prev,diet: [e.target.value]}) )} id='new-recipe-diet'>
+                    <option value="">--Please choose an option--</option>
+                    <option value="all">All food</option>
+                    <option value="carnivorous">carnivorous</option>
+                    <option value="vegetarian">vegetarian</option>
+                    <option value="fruitarian">fruitarian</option>
+                </select>             
               <label>New recipe cook time:</label>
-              <input value={newRecipe?.cookTime} onChange={newRecipeChange} id='new-recipe-cooktime'/>
+              <input placeholder='22s' value={newRecipe?.cookTime} onChange={(e) => setNewRecipe((prev) => ({...prev,cookTime: e.target.value}))} id='new-recipe-cooktime'/>
               <label>New recipe author:</label>
-              <input value={newRecipe?.author} onChange={newRecipeChange} id='new-recipe-author'/>
+              <input value={newRecipe?.author} onChange={(e) => setNewRecipe((prev) => ({...prev,author: e.target.value}))} id='new-recipe-author'/>
+              <ul>
+                {newRecipe.ingredients.map((ing,i) => (
+                    <li key={i}>
+                        Ingredeint {`${i +1}`}: {ing}
+                        <button type='button' onClick={(e) => {
+                            e.preventDefault();
+                            const filteredIngredients = newRecipe.ingredients.filter((ingredient) => ingredient !== ing );
+                            setNewRecipe((prev) => ({...prev,ingredients: filteredIngredients}))
+                        }}>❌</button>
+                    </li>
+                ))}
+              </ul>
               <button type='submit' >Add Recipe ✅</button>
           </form>
           <button onClick={() => setReadDisplay({display: "none"})}>❌</button>

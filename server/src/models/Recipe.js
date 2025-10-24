@@ -2,13 +2,14 @@ import mongoose from "mongoose"
 
 const recipeSchema = new mongoose.Schema ({
     type: {type:String, default: "recipe"},
-    title: {type:String,required: true},
+    name: {type:String,required: true},
+    diet: {type:[String]},
     instructions: {type:String,required: true},
     ingredients: {type:[String],required: true},
     cookTime: {type: String},
     url: {type: String},
-    image: {type: String},
-    author: {type: String},
+    imageUrl: {type: String},
+    author: {type: String,default: "admin"},
     createdAt: {type: Date, default: Date.now}
 })
 
