@@ -6,9 +6,10 @@ interface itemsListProps{
     items: Item[];
     onSelectItem: (id : string) => void;
     search: string;
+    dietPlanType: string;
 }
 
-const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
+const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps ) => {
 
     const [visibleCount,setVisibleCount] = useState(50);
 
@@ -58,8 +59,41 @@ const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
         setVisibleCount(prev => prev + 50);
     }
 
-    const itemsToDisplay = search === "" ? items : filteredItems;
-    const limitedItems = itemsToDisplay.slice(0,visibleCount);
+    const checkForDiet = (plan: string): Item[] => {
+        switch(plan){
+            case "all":
+                return items;
+            case "vegetarian":
+                return items.filter((item) =>  // ✅ Add return
+                    isFoodItem(item) && ( 
+                        item.foodType.toLowerCase() === "vegetable" || 
+                        item.foodType.toLowerCase() === "fruit" || 
+                        item.foodType.toLowerCase() === "seed" ||
+                        item.foodType.toLowerCase() === "herbs and spices" 
+                    )
+                );
+            case "carnivorous":
+                return items.filter((item) => 
+                    isFoodItem(item) && (
+                        item.foodType.toLowerCase() === "beef" || 
+                        item.foodType.toLowerCase() === "pork" || 
+                        item.foodType.toLowerCase() === "lamb and mutton"
+                    )
+                );
+            case "fruitarian":
+                return items.filter((item) => 
+                    isFoodItem(item) && ( 
+                        item.foodType.toLowerCase() === "fruit" || 
+                        item.foodType.toLowerCase() === "seed" 
+                    )
+                );
+            default: 
+                return items;
+        }
+    }
+
+    const itemsToDisplay = search === "" ? checkForDiet(dietPlanType) : filteredItems;
+    const limitedItems = itemsToDisplay.slice(0, visibleCount);
     const hasMoreItems = visibleCount < itemsToDisplay.length;
 
     if(items.length < 1) return <>Loading..</>
@@ -70,13 +104,13 @@ const ItemsDisplay = ({items, onSelectItem,search} : itemsListProps ) => {
   return (
     <div>
         <div id='search-item-grid'>
-            {limitedItems.map((item) => (
+            {limitedItems?.map((item) => (
                 <ItemDisplay key={item._id} onToggle={() => onSelectItem(item._id)} itemToDisplay={item}/>
             ))}
         </div>
         {hasMoreItems && (
             <button onClick={() => loadMore()} style={{margin: "20px auto",display: "block"}}>
-                Load more ({itemsToDisplay.length - visibleCount} remaining) 
+                Load more ({itemsToDisplay ? itemsToDisplay.length - visibleCount : null} remaining) 
             </button>
         )}
     </div>

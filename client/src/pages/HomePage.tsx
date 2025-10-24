@@ -8,7 +8,7 @@ import type { Item } from '../utils/types';
 import type { foodFace,recipeFace } from '../utils/types';
 import LoginPage from './LoginPage';
 
-
+type DietType = "" | "all" | "carnivorous" | "vegetarian" | "fruitarian";
 
 type items = foodFace | recipeFace;
 
@@ -54,6 +54,10 @@ const LandingPage = () => {
             console.error("error fetching data:",err)
         })
     },[]);
+
+    // diet plans
+
+    const [dietPlan,setDietPlan] = useState<DietType>("all");
 
     // input entered in search field
     const [searchedItem,setSearchedItem] = useState<string>("");
@@ -103,6 +107,15 @@ const LandingPage = () => {
         <button id='add-item' onClick={() => {setAddItemClicked((prev) => !prev)}}>Add food item +</button>
         {/* add new recipe item to the list */}
         <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add recipe +</button>
+        {/* select an diet option */}
+        <h3>Select your food preference:</h3>
+        <select value={dietPlan} onChange={(e : any) => setDietPlan(e.target.value)} id='diets'>
+            <option value="">--Please choose an option--</option>
+            <option value="all">All food</option>
+            <option value="carnivorous">carnivorous</option>
+            <option value="vegetarian">vegetarian</option>
+            <option value="fruitarian">fruitarian</option>
+        </select>
         {/* Add recipe  */}
         {addRecipeClicked && <FormEl onAdd={addItem} onClose={() => setAddRecipeClicked(false)}/>}
         {/* Add food  */}
@@ -110,7 +123,7 @@ const LandingPage = () => {
     </div>
     <ControlPanel nodeServerRunning={message}/>
     <div id='display'>
-        {selectedItemId === null  ? <ItemsDisplay search={searchedItem} items={itemsList} onSelectItem={setSelectedItemId} /> : <ReadItem onSelectItem={setSelectedItemId} itemId={selectedItemId} onUpdate={updateItem} onClose={() => setSelectedItemId(null)} onDelete={deleteItem} items={itemsList} />}
+        {selectedItemId === null  ? <ItemsDisplay dietPlanType={dietPlan} search={searchedItem} items={itemsList} onSelectItem={setSelectedItemId} /> : <ReadItem onSelectItem={setSelectedItemId} itemId={selectedItemId} onUpdate={updateItem} onClose={() => setSelectedItemId(null)} onDelete={deleteItem} items={itemsList} />}
     </div>
     </>
   )

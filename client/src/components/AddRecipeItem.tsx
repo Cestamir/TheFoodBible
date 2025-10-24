@@ -31,7 +31,7 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
         }))
     } else if(changeTarget === "new-recipe-ingredients"){
         setNewRecipe((prev) => ({
-            ...prev,ingredients: value.split(", ")
+            ...prev,ingredients: value
         }))
     } else if (changeTarget === "new-recipe-author"){
         setNewRecipe((prev) => ({
@@ -56,6 +56,11 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
       if(newRecipe?.title.length < 1 || newRecipe?.instructions.length < 1 || newRecipe?.author.length < 1){
           return;
       }
+
+    //   const fullRecipeIngredients = newRecipe.ingredients[0].split(",") 
+    //   setNewRecipe((prev) => ({...prev,ingredients: fullRecipeIngredients}))
+    //   console.log(newRecipe)
+
       try{
       e.preventDefault();
       const res = await fetch("/api/recipes",{method: "POST",headers: {
@@ -71,7 +76,6 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
       } catch(err){
           console.log(err)
       } finally {
-        console.log("recipe added")
         setNewRecipe({title:'',instructions: '',ingredients: [],url: '',image: '',cookTime: '',author: '',type: "recipe"});
         onClose();
       }

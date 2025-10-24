@@ -27,19 +27,33 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
     const token = localStorage.getItem("token");
 
-    function saveUnmatchedIngredients(){
-        let unmatchedlist : any = [];
-        if(recipeItems && item && isRecipeItem(item)){
-            for(let i=0;i< item.ingredients.length;i++){
-                const itemIngredient = item.ingredients[i]
+    // function saveUnmatchedIngredients(){
+    //     let unmatchedlist : any = [];
+    //     if(recipeItems && item && isRecipeItem(item)){
+    //         for(let i=0;i< item.ingredients.length;i++){
+    //             const itemIngredient = item.ingredients[i]
 
-                const match = recipeItems.find((recipe : any) => recipe.title === itemIngredient)
-                if(!match){
-                    unmatchedlist.push(itemIngredient)
-                }
+    //             const match = recipeItems.find((recipe : any) => recipe.title === itemIngredient)
+    //             if(!match){
+    //                 unmatchedlist.push(itemIngredient)
+    //             }
+    //         }
+    //     }
+    //     return unmatchedlist;
+    // }
+
+    const findMatchingItems = (ingredientName: string) : Item | null => {
+        const normalizedIngredient = ingredientName.toLowerCase().trim();
+        console.log(normalizedIngredient)
+        const match = items.find((item) => {
+            if(isFoodItem(item)){
+                return item.name.toLowerCase().includes(normalizedIngredient) || normalizedIngredient.includes(item.name.toLowerCase());
+            } else if (isRecipeItem(item)){
+                return item.title.toLowerCase().includes(normalizedIngredient) || normalizedIngredient.includes(item.title.toLowerCase());
             }
-        }
-        return unmatchedlist;
+            return false;
+        })
+        return match || null;
     }
 
     // setting the items of an item, which are already as foods in db
@@ -47,10 +61,29 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         const loadRecipeFoods = async () => {
             try{
             if(item && isRecipeItem(item)){
-                    const filteredIngredients : Item[] = item.ingredients.map((ingredient) => showIngredientBasedOnName(ingredient)).filter((result) : result is Item[] => Array.isArray(result)).flat();
-                    const otherItems = saveUnmatchedIngredients();
-                    setUnmatchedItems(otherItems)
-                    setRecipeItems(filteredIngredients);
+                const matchedItems: Item[] = [];
+                const unmatched: string[] = [];
+                console.log(item.ingredients)
+
+                item.ingredients.forEach((ingredient : string) => {
+                    const match = findMatchingItems(ingredient);
+                    if(match){
+                        matchedItems.push(match)
+                    } else {
+                        unmatched.push(ingredient);
+                    }
+                })
+
+                setRecipeItems(matchedItems)
+                setUnmatchedItems(unmatched);
+
+                console.log('Matched items:', matchedItems);
+                console.log('Unmatched ingredients:', unmatched);
+
+                    // const filteredIngredients : Item[] = item.ingredients.map((ingredient) => showIngredientBasedOnName(ingredient)).filter((result) : result is Item[] => Array.isArray(result)).flat();
+                    // const otherItems = saveUnmatchedIngredients();
+                    // setUnmatchedItems(otherItems)
+                    // setRecipeItems(filteredIngredients);
             }
 
             }catch(err){
@@ -58,7 +91,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             }
         }
         loadRecipeFoods();
-    },[item])
+    },[item,items])
 
 
     const [readDisplay,setReadDisplay] = useState({display: 'block'})
@@ -82,13 +115,18 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         let isConfirmed = confirm(`Are you sure you want to delete item with id:  ${item?._id} ?`);
 
         if(!isConfirmed) return;
-        if(isRecipeItem(item)){
+
+        const endpoint = isRecipeItem(item) ? `/api/recipes/${id}` : `/api/foods/${id}`;
+
             try {
-                const res = await fetch(`/api/recipes/${id}`,{method: "DELETE",headers: {
+                const res = await fetch(endpoint,{method: "DELETE",headers: {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${token}`}})
                 if(res.ok){
-                console.log("recipe deleted")
+                
+                setReadDisplay({display: "none"})
+                onDelete(itemId)
+                console.log(`${isRecipeItem(item) ? "Recipe" : "food"} deleted`)
                 } else {
                     alert("cannot delete selected item.")
                     return;
@@ -96,24 +134,6 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             } catch (error) {
                 console.log(error)
             }
-        } else if (isFoodItem(item)){
-            try {
-                const res = await fetch(`/api/foods/${id}`,{method: "DELETE",headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`}})
-                if(res.ok){
-                console.log("food deleted")
-                } else {
-                    alert("cannot delete selected item.")
-                    return;
-                }
-            } catch (error) {
-                console.log(error)
-            }
-            
-        }
-        setReadDisplay({display: "none"})
-        onDelete(itemId)
     }
 
     const handleEdit = () => {
@@ -121,28 +141,28 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         console.log(item)
     }
 
-    // functions for checking and displaying the ingredeints in recipes
+    // // functions for checking and displaying the ingredeints in recipes
 
-    function checkForIngredient(ingredient : string,ingredientInDb : string){
-        if(ingredient.includes(ingredientInDb)){
-            return ingredientInDb;
-        }
-    }
+    // function checkForIngredient(ingredient : string,ingredientInDb : string){
+    //     if(ingredient.includes(ingredientInDb)){
+    //         return ingredientInDb;
+    //     }
+    // }
 
-    function showIngredientBasedOnName(ingredientName: string){
-        const foodIngredients = items.filter((item) =>{
-            if(isRecipeItem(item)){
-                item.title === checkForIngredient(ingredientName,item.title)
-            } else if(isFoodItem(item)){
-                item.name === checkForIngredient(ingredientName,item.name)
-            }
-        })
-        if(foodIngredients){
-            return foodIngredients;
-        } else {
-            return;
-        }
-    }
+    // function showIngredientBasedOnName(ingredientName: string){
+    //     const foodIngredients = items.filter((item) =>{
+    //         if(isRecipeItem(item)){
+    //             item.title === checkForIngredient(ingredientName,item.title)
+    //         } else if(isFoodItem(item)){
+    //             item.name === checkForIngredient(ingredientName,item.name)
+    //         }
+    //     })
+    //     if(foodIngredients){
+    //         return foodIngredients;
+    //     } else {
+    //         return;
+    //     }
+    // }
 
   return (
     <div id='readitem' style={readDisplay}>
@@ -187,9 +207,9 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
                 {item.instructions}
                 {/* ingredients in recipes */}
                 <div>
-                    {recipeItems.map((recipeItem) => {
-                        return <ItemDisplay key={recipeItem._id} itemToDisplay={recipeItem} onToggle={() => onSelectItem(recipeItem._id)}/>})}
-                    {unmatchedItems.map((item) => (
+                    {recipeItems.length > 0 && recipeItems.map((recipeItem) => (
+                        <ItemDisplay key={recipeItem._id} itemToDisplay={recipeItem} onToggle={() => onSelectItem(recipeItem._id)}/>))}
+                    {unmatchedItems.length > 0 && unmatchedItems.map((item) => (
                         <div key={item}>{item}</div>
                     ))}
                 </div>
