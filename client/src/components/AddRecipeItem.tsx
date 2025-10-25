@@ -21,6 +21,7 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
   const navigate = useNavigate();
 
   const handleRecipeSubmit = async(e : React.FormEvent) => {
+    e.preventDefault();
       if(newRecipe?.name.length < 1 || newRecipe?.instructions.length < 1 || newRecipe?.diet.length < 1 || newRecipe?.ingredients.length < 1){
           return;
       }
@@ -30,7 +31,6 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
     //   console.log(newRecipe)
 
       try{
-      e.preventDefault();
         if(token && isExpiredToken(token)){
             alert("expired token please login again.")
             localStorage.removeItem("token");

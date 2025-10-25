@@ -12,12 +12,13 @@ const Navbar = () => {
 
     const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
 
+    const token = localStorage.getItem("token");
     const dispatch = useDispatch();
     const navigate = useNavigate()
 
   return (
     <nav>
-        {isAuthenticated ? <button onClick={()=> {
+        {isAuthenticated && token ? <button onClick={()=> {
           localStorage.removeItem('token');
           localStorage.removeItem('role');
           dispatch(clearUserItems());

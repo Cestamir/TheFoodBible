@@ -16,12 +16,12 @@ interface CustomJwtPayload {
     iat?: number;
 }
 
-interface login{
+interface Login{
     userName: string
     password: string
 }
 
-interface register{
+interface Register{
     userName: string
     password: string
     userEmail: string
@@ -29,20 +29,15 @@ interface register{
 
 const LoginPage : React.FC = () => {
 
-    const {userItems,loading,error} = useSelector((state: RootState) => state.userItems);
-
-    // manage user data
-
     const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
-    const token = localStorage.getItem("token");
-
 
     const [registerBtn,setRegisterBtn] = useState(false);
-    const [loginUser,setLoginUser] = useState<login>({userName: "",password: ""})
-    const [registerUser,setRegisterUser] = useState<register>({userName: "",password: "",userEmail: ""})
+    const [loginUser,setLoginUser] = useState<Login>({userName: "",password: ""})
+    const [registerUser,setRegisterUser] = useState<Register>({userName: "",password: "",userEmail: ""})
     const [loginLoading,setLoginLoading] = useState(false)
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const token = localStorage.getItem("token");
 
     const handleSubmit = async (e: React.FormEvent) => {
         const formId : string = e.target.id
@@ -75,7 +70,7 @@ const LoginPage : React.FC = () => {
 
 
                 // handle navigation here when page is ready ti use, need to create LOGINPAGE
-                navigate("/")
+                navigate("/login")
             }catch(err){
                 console.log(err)
             } finally {
@@ -103,63 +98,6 @@ const LoginPage : React.FC = () => {
 
     }
 
-    // load user items
-
-    const loadUserItems = async () => {
-        if(!token){
-            console.log("No token available.")
-            return;
-        }
-        dispatch(setLoading(true));
-        try {
-            const res = await fetch("/api/users/me/foods",{method: "GET",   
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if(res.ok){
-                const data = await res.json();
-                dispatch(setUserItems(data))
-            } else {
-                dispatch(setError("Failed to load user items."))
-            }
-
-            
-        } catch (error) {
-            dispatch(setError('Error loading user items'));
-            console.log(error);
-        }
-    }
-
-    useEffect(() => {
-        if(isAuthenticated){
-            loadUserItems();
-        }
-    },[isAuthenticated])
-
-    // remove item from user items
-
-    const handleRemoveUserItem = async (id: string) => {
-        try {
-            console.log(id)
-            const res = await fetch(`/api/users/me/foods/${id}`,{method: "DELETE",
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            
-            if(res.ok){
-                dispatch(deleteUserItem(id))
-            } else {
-                console.log("failed to remove food from db")
-            }
-            
-        } catch (error) {
-            console.log("error removing food")
-        }
-    }
-
     // EXTRACT THE PAYLOAD FROM JWT TOKEN
 
     // function parseJwt(token : string) {
@@ -175,10 +113,9 @@ const LoginPage : React.FC = () => {
   return (
     <div>  
         {/* load */}
-        {loading && <p>Loading your food items</p>}
         {loginLoading && registerBtn ? <div>Waiting for registration..</div> : loginLoading && !registerBtn ? <div>Waiting for login..</div> : null}
         {/* logout */}
-        {isAuthenticated ? <button onClick={() => {
+        {isAuthenticated && token ? <button onClick={() => {
             dispatch(logout());
             dispatch(clearUserItems());
             localStorage.removeItem("token");
@@ -208,13 +145,6 @@ const LoginPage : React.FC = () => {
         </div>}
         <button onClick={() => setRegisterBtn(prev => !prev)}>{registerBtn ? "login to existing account⬇️" : "register new account"}</button>
     </div>}
-    {userItems ? <ul>{userItems.map((item,i) => (
-        <li key={i}>
-            {/* need to display clickable component like in recipe detail */}
-            <h3>{item.name}</h3>
-            <button onClick={() => handleRemoveUserItem(item._id)}>❌ remove</button>
-        </li>
-    ))}</ul> : "No user items."}
     </div>
   )
 }

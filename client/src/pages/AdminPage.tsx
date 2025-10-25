@@ -260,6 +260,7 @@ const AdminPage = () => {
               <h2>{user.userEmail}</h2>
               {user.userName === localStorage.getItem("user") ? <h2 style={{color: "red"}}>{`CURRENT ACC ${user.userName}`}</h2>: <h2>{user.userName}</h2>}
               <h2>{user.password}</h2>
+              <h3>Items on acc: {user.foodItems?.length}</h3>
               <button onClick={() => handleDeleteUser(user._id!)}>DELETE USER</button>
               <button onClick={() => {setUpdateBtn(prev => !prev);loadUserToUpdate(user)}}>UPDATE USER</button>
             </div>

@@ -10,9 +10,9 @@ const ItemDisplay = ({itemToDisplay,onToggle}: itemDisplayProps) => {
 
   return (
     <div className='search-item' onClick={() => onToggle(itemToDisplay._id)}>
-        <div>{isFoodItem(itemToDisplay) ? itemToDisplay.name : isRecipeItem(itemToDisplay) ? <h3>itemToDisplay.name</h3> : null}</div>
+        <div>{isFoodItem(itemToDisplay) ? <h4>{itemToDisplay.name}</h4> : isRecipeItem(itemToDisplay) ? <h4>{itemToDisplay.name}</h4> : null}</div>
 
-        {itemToDisplay.imageUrl != null ? <div>
+        {itemToDisplay.imageUrl != null && itemToDisplay.imageUrl.length > 5 ? <div>
           <img width={32} height={32} src={itemToDisplay.imageUrl}/>
           </div> : <div>🥗</div>}
     </div>
