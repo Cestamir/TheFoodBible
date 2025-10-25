@@ -15,7 +15,6 @@ interface CustomJwtPayload {
     iat?: number;
 }
 
-// need to make it a single page for login or register
 interface login{
     userName: string
     password: string
@@ -38,39 +37,6 @@ const LoginPage : React.FC = () => {
     const [loginLoading,setLoginLoading] = useState(false)
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    const handleChange = (e: any) => {
-        const inputId = e.target.id
-        const val = e.target.value;
-        switch(inputId){
-            case "logininput":
-                setLoginUser((prev) => ({
-                    ...prev,userName: val
-                }))
-                break;
-            case "registerinput":
-                setRegisterUser((prev) => ({
-                    ...prev,userName: val
-                }))
-                break;
-            case "passwordlogininput":
-                setLoginUser((prev) => ({
-                    ...prev,password: val
-                }))
-                break;
-            case "passwordregisterinput":
-                setRegisterUser((prev) => ({
-                    ...prev,password: val
-                }))
-                break;
-            case "emailinput":
-                setRegisterUser((prev) => ({
-                    ...prev,userEmail: val
-                }))
-                break;
-            default: null;
-        }
-    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         const formId : string = e.target.id
@@ -142,16 +108,17 @@ const LoginPage : React.FC = () => {
     // }
 
   return (
-    <>  
-        {loginLoading ? <div>Waiting for login/register ..</div> : isAuthenticated ? <button onClick={() => dispatch(logout()) }>Logout</button> :     
+    <div>  
+        {loginLoading && registerBtn ? <div>Waiting for registration..</div> : loginLoading && !registerBtn ? <div>Waiting for login..</div> : null}
+        {isAuthenticated ? <button onClick={() => dispatch(logout()) }>Logout</button> :     
         <div>
         {!registerBtn && <div id='login'>
             <p>Login</p>
             <form id='loginform' onSubmit={handleSubmit}>
             <label htmlFor='logininput'>ENTER YOUR USERNAME:</label>
-            <input minLength={3} onChange={handleChange} value={loginUser.userName} id='logininput'/>
+            <input minLength={3}  onChange={(e) => setLoginUser((prev) => ({...prev,userName: e.target.value}))} value={loginUser.userName} id='logininput'/>
             <label htmlFor='passwordlogininput' >ENTER YOUR PASSWORD:</label>
-            <input type='password' onChange={handleChange} value={loginUser.password} id='passwordlogininput'/>
+            <input type='password'  onChange={(e) => setLoginUser((prev) => ({...prev,password: e.target.value}))} value={loginUser.password} id='passwordlogininput'/>
             <button type='submit' id='loginbtn'>LOGIN HERE</button>
             </form>
         </div>}
@@ -159,17 +126,17 @@ const LoginPage : React.FC = () => {
             <p>Register</p>
             <form id='registerform' onSubmit={handleSubmit}>
             <label htmlFor='registerinput'>ENTER USERNAME:</label>
-            <input minLength={3} onChange={handleChange} value={registerUser.userName} id='registerinput'/>
+            <input minLength={3}  onChange={(e) => setRegisterUser((prev) => ({...prev,userName: e.target.value}))} id='registerinput' value={registerUser.userName}/>
             <label htmlFor='passwordregisterinput'>ENTER PASSWORD:</label>
-            <input type='password' onChange={handleChange} value={registerUser.password} id='passwordregisterinput'/>
+            <input type='password'  onChange={(e) => setRegisterUser((prev) => ({...prev,password: e.target.value}))} value={registerUser.password} id='passwordregisterinput'/>
             <label htmlFor='emailinput'>ENTER YOUR EMAIL:</label>
-            <input type='email' onChange={handleChange} value={registerUser.userEmail} id='emailinput'/>
+            <input type='email' onChange={(e) => setRegisterUser((prev) => ({...prev,userEmail: e.target.value}))} value={registerUser.userEmail} id='emailinput'/>
             <button type='submit' id='registerbtn'>REGISTER HERE</button>
             </form>
         </div>}
         <button onClick={() => setRegisterBtn(prev => !prev)}>{registerBtn ? "login to existing account⬇️" : "register new account"}</button>
     </div>}
-    </>
+    </div>
   )
 }
 

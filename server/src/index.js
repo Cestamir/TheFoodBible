@@ -29,7 +29,7 @@ app.use(express.json());
 
 // test
 
-console.log('All env vars:', process.env.JWT_SECRET);
+console.log('Port:', process.env.PORT);
 
 // mongodb setup
 
@@ -44,11 +44,13 @@ import foodRoutes from "./routes/foods.js"
 import recipeRoutes from "./routes/recipes.js"
 import authRoutes from "./routes/auth.js"
 import userRoutes from "./routes/users.js"
+import dietRoutes from "./routes/diet.js"
 
 app.use("/api/users",userRoutes);
 app.use("/api/recipes",recipeRoutes);
 app.use("/api/foods",foodRoutes);
 app.use("/api/auth",authRoutes);
+app.use("/api/diet",dietRoutes)
 
 // testing the database
 

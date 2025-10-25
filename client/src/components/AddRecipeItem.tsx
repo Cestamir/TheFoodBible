@@ -35,7 +35,7 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
             alert("expired token please login again.")
             localStorage.removeItem("token");
             localStorage.removeItem("role");
-            navigate("/")
+            navigate("/login")
         }
       const res = await fetch("/api/recipes",{method: "POST",headers: {
     "Content-Type": "application/json",

@@ -2,7 +2,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
 import LandingPage from './pages/LandingPage'
 import UnauthorizedPage from './pages/UnauthorizedPage'
-import RecipePage from './RecipePage'
 import AdminPage from './pages/AdminPage'
 import Navbar from './components/Navbar'
 import HomePage from "./pages/HomePage"
@@ -12,9 +11,19 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from './reduxstore/store'
 import { useEffect } from 'react'
 import { setError, setFoods, setLoading, setRecipes } from './reduxstore/itemsSlice'
-// more pages to add login/register page, contact page, bmi calculator
+import LoginPage from './pages/LoginPage'
+import { isExpiredToken } from './utils/types'
+//bmi calculator componet to add
+
 
 function App() {
+
+  const token = localStorage.getItem("token");
+    if(token && isExpiredToken(token)){
+        alert("please login, token expired.")
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+    }
 
   const dispatch = useDispatch();
   const {foods,recipes,loading} = useSelector((state : RootState) => state.items );
@@ -48,6 +57,7 @@ function App() {
     <BrowserRouter>
     <Navbar/>
       <Routes>
+        <Route path='/login' element={<LoginPage/>}/>
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/home' element={<HomePage/>}/>
         <Route path='/unauthorized' element={<UnauthorizedPage/>}/>

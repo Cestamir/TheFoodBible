@@ -20,6 +20,13 @@ export const isExpiredToken = (token: string) => {
     }
 }
 
+export interface Diet{
+    _id?: string,
+    planName: string,
+    duration: number,
+    goal: string,
+}
+
 export interface User {
     _id?: string,
     userName: string,

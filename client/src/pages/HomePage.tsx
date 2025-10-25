@@ -4,18 +4,19 @@ import AddRecipeItem from '../components/AddRecipeItem';
 import AddFoodItem from '../components/AddFoodItem';
 import ItemsDisplay from '../components/ItemsDisplay';
 import ControlPanel from '../ControlPanel';
-import { isFoodItem, isRecipeItem, type Item } from '../utils/types';
+import { isExpiredToken, isFoodItem, isRecipeItem, type Item } from '../utils/types';
 import type { foodFace,recipeFace } from '../utils/types';
-import LoginPage from './LoginPage';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../reduxstore/store';
 import { addFood, addRecipe, deleteFood, deleteRecipe, updateFood, updateRecipe } from '../reduxstore/itemsSlice';
+
 
 type DietType = "" | "all" | "carnivorous" | "vegetarian" | "fruitarian";
 
 type items = foodFace | recipeFace;
 
 const HomePage = () => {
+    
     // Redux
     const dispatch = useDispatch();
     const {foods,recipes,loading} = useSelector((state: RootState) => state.items);
@@ -90,7 +91,6 @@ const HomePage = () => {
 
   return (
     <>
-    <LoginPage/>
     <div id='search-bar'>
         <span>The Food Guide</span>
         <input id='search-field' value={searchedItem} onChange={handleOnchange}/>
@@ -116,7 +116,7 @@ const HomePage = () => {
     <ControlPanel nodeServerRunning={message}/>
     <div id='display'>
         {selectedItemId === null  ? 
-        
+
         <ItemsDisplay 
         dietPlanType={dietPlan} 
         search={searchedItem} 

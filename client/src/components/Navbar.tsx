@@ -16,16 +16,23 @@ const Navbar = () => {
 
   return (
     <nav>
-        {role == 'admin' ? <Link to={"/admin"}>Admin</Link> : null }
-        {/* doesnt work for the viewer */}
-        {role !== "viewer" ? <Link to={"/diet"}>Diet Plans</Link> : null}
         {isAuthenticated ? <button onClick={()=> {
           dispatch(logout())
           navigate("/");
           }}>logout</button> : null}
+        {role === 'admin' ? <button><Link to={"/admin"}>Admin</Link></button> : null }
+        {role === "admin" || role === "user" ? <button><Link to={"/diet"}>Diet Plans</Link></button> : null}
         <button>
-            <Link to={"/"}>Home</Link>
-            <Link to={"/home"}>App</Link>
+            <Link to={"/"}>App</Link>
+        </button>
+        <button>
+            <Link to={"/home"}>Home - guide</Link>
+        </button>
+        <button>
+          <Link to={"/contact"}>Contact</Link>
+        </button>
+        <button>
+          <Link to={"/login"}>Login/Register</Link>
         </button>
     </nav>
   )

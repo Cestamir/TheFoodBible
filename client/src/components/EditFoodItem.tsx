@@ -33,7 +33,7 @@ const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
             alert("expired token please login again.")
             localStorage.removeItem("token");
             localStorage.removeItem("role");
-            navigate("/")
+            navigate("/login")
         }
         const res = await fetch(`/api/foods/${id}`,{method: "PUT", headers: {
     "Content-Type": "application/json",

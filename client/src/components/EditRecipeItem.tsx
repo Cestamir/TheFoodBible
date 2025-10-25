@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
-import type { Item } from '../utils/types'
+import { isExpiredToken, type Item } from '../utils/types'
 import type { recipeFace } from '../utils/types'
+import { useNavigate } from 'react-router-dom';
+
 
 interface EditFormProps {
   itemToDisplay: recipeFace;
@@ -14,14 +16,24 @@ const EditRecipeItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
     const [currentIngredient,setCurrentIngredient] = useState<string>("");
 
     const token = localStorage.getItem("token")
+    const navigate = useNavigate();
 
     const handleRecipeEdit = async (e : React.FormEvent,id: any) => {
         try{
             e.preventDefault();
             const editedRecipe = {_id: itemToDisplay?._id,name: editRecipe?.name,instructions: editRecipe?.instructions,ingredients: editRecipe?.ingredients,url: editRecipe.url,imageUrl: editRecipe.imageUrl, cookTime: editRecipe.cookTime,author: editRecipe?.author,diet: editRecipe.diet,createdAt: editRecipe.createdAt}
+
+            if(token && isExpiredToken(token)){
+                alert("token expired please login again.")
+                localStorage.removeItem("token")
+                localStorage.removeItem("role")
+                navigate("/login")
+            }
+
             const res = await fetch(`/api/recipes/${id}`,{method: "PUT",headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`},body: JSON.stringify({name: editedRecipe?.name,instructions: editedRecipe?.instructions,ingredients: editedRecipe?.ingredients,url: editedRecipe.url,imageUrl: editedRecipe.imageUrl, cookTime: editedRecipe.cookTime,author: editedRecipe?.author,diet: editedRecipe.diet,createdAt: editedRecipe.createdAt})})
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`},body: JSON.stringify({name: editedRecipe?.name,instructions: editedRecipe?.instructions,ingredients: editedRecipe?.ingredients,url: editedRecipe.url,imageUrl: editedRecipe.imageUrl, cookTime: editedRecipe.cookTime,author: editedRecipe?.author,diet: editedRecipe.diet,createdAt: editedRecipe.createdAt})})
+
             if(res.ok){
                 const updatedRecipe = await res.json();
                 console.log("Recipe updated successfully",updatedRecipe)
