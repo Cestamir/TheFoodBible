@@ -33,6 +33,7 @@ export interface User {
     password?: string,
     userEmail: string,
     role: string,
+    foodItems?: foodFace[],
 }
 
 export interface newRecipeFace {

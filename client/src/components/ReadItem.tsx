@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import EditFoodItem from './EditFoodItem';
 import EditRecipeItem from './EditRecipeItem';
 import { isFoodItem,isRecipeItem } from '../utils/types';
-import type { Item } from '../utils/types';
+import type { foodFace, Item } from '../utils/types';
 import ItemDisplay from './ItemDisplay';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../reduxstore/store';
 import { isExpiredToken } from '../utils/types';
 import { useNavigate } from 'react-router-dom';
+import { addUserItem } from '../reduxstore/userItemsSlice';
+
 
 interface ItemDetailProps {
   itemId: string;
@@ -21,12 +23,14 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
 
     const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
+    const {userItems,loading,error} = useSelector((state: RootState) => state.userItems)
 
     const [recipeItems,setRecipeItems] = useState<Item[]>([]);
     const [unmatchedItems,setUnmatchedItems] = useState<string[]>([]);
 
     const item : any = items.find((item) => item._id === itemId)
 
+    const dispatch = useDispatch();
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
@@ -110,8 +114,6 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         console.log(item)
     }
 
-
-
     const handleDelete = async (id : string) => {
         let isConfirmed = confirm(`Are you sure you want to delete item with id:  ${item?._id} ?`);
 
@@ -170,6 +172,31 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
     //     }
     // }
 
+
+    // add food item to user acc
+
+    const handleAddFoodToAccount = async (itemToAdd : foodFace) => {
+        try {
+            const foodExists =  userItems.find((item : foodFace) => item._id === itemToAdd._id)
+            if(foodExists){
+                return;
+            }
+
+            const res = await fetch(`/api/users/me/foods`,{method: "POST",headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },body: JSON.stringify({foodId: itemToAdd._id})})
+
+            if(res.ok){
+                dispatch(addUserItem(itemToAdd));
+                console.log('food added to user account.')
+            }
+
+        } catch (err) {
+            console.log(err,"failed to add food to user account")
+        }
+    }
+
   return (
     <div id='readitem' style={readDisplay}>
         <button onClick={() => {setReadDisplay({display: "none"});onClose()}}>❌ BACK</button>
@@ -190,6 +217,8 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             // item is type of food
             <div>
                 <h2>{item.name}</h2>
+                {/* add food to acc */}
+                {role === "admin" || role === "user" ? <button onClick={() => handleAddFoodToAccount(item)}>Add item to your account ➕</button> : null}
                 <h3>{item.foodType}</h3>
                 {item.fdcId ? <h4>{item.fdcId}</h4> : <h4>No fdcId.</h4>}
                 {item.imageUrl != null ? <div>

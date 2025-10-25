@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ControlPanel from '../ControlPanel'
-import { Link } from 'react-router-dom'
-import type { User,Diet } from '../utils/types'
+import { Link, useNavigate } from 'react-router-dom'
+import { type User,type Diet, isExpiredToken } from '../utils/types'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '../reduxstore/store'
 import { addDiet, setDiets, updateDiet,deleteDiet } from '../reduxstore/dietSlice'
@@ -43,11 +43,12 @@ const AdminPage = () => {
   const [newUser,setNewUser] = useState<User>({userName: '',
     password: '',
     userEmail: '',
-    role: ''});
+    role: '',foodItems: []});
 
   const [userPanelClicked,setUserPanelClicked] = useState(false);
   const [users,setUsers] = useState<User[]>();
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   const manageUsers = async () => {
     const res = await fetch("/api/users",{method: "GET",headers: {"Content-Type" : "application/json","Authorization": `Bearer ${token}`}});
@@ -88,7 +89,7 @@ const AdminPage = () => {
       setNewUser({userName: '',
     password: '',
     userEmail: '',
-    role: ''})
+    role: '',foodItems: []})
     }
   }
 
@@ -122,7 +123,7 @@ const AdminPage = () => {
       setNewUser({userName: '',
     password: '',
     userEmail: '',
-    role: ''})
+    role: '',foodItems: []})
     }
   }
 
@@ -191,6 +192,13 @@ const AdminPage = () => {
     }
   }
 
+  if(token && isExpiredToken(token)){
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    alert("login again.")
+    navigate("/login")
+  }
+
   return (
     <div>
         AdminPage = 
@@ -250,7 +258,7 @@ const AdminPage = () => {
               <h2>{user._id}</h2>
               <h2>{user.role}</h2>
               <h2>{user.userEmail}</h2>
-              <h2>{user.userName}</h2>
+              {user.userName === localStorage.getItem("user") ? <h2 style={{color: "red"}}>{`CURRENT ACC ${user.userName}`}</h2>: <h2>{user.userName}</h2>}
               <h2>{user.password}</h2>
               <button onClick={() => handleDeleteUser(user._id!)}>DELETE USER</button>
               <button onClick={() => {setUpdateBtn(prev => !prev);loadUserToUpdate(user)}}>UPDATE USER</button>

@@ -36,7 +36,7 @@ const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
             alert("expired token please login again.")
             localStorage.removeItem("token");
             localStorage.removeItem("role");
-            navigate("/")
+            navigate("/login")
         }
         const res = await fetch("/api/foods",{method: "POST",headers: {
     "Content-Type": "application/json",

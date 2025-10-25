@@ -13,6 +13,7 @@ import { useEffect } from 'react'
 import { setError, setFoods, setLoading, setRecipes } from './reduxstore/itemsSlice'
 import LoginPage from './pages/LoginPage'
 import { isExpiredToken } from './utils/types'
+import AccountPage from './pages/AccountPage'
 //bmi calculator componet to add
 
 
@@ -57,6 +58,7 @@ function App() {
     <BrowserRouter>
     <Navbar/>
       <Routes>
+        <Route path='/account' element={<AccountPage/>}/>
         <Route path='/login' element={<LoginPage/>}/>
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/home' element={<HomePage/>}/>

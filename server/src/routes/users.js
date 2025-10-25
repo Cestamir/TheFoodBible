@@ -3,12 +3,14 @@ const router = express.Router();
 import User from "../models/User.js";
 import { authenticate,authorizeRoles } from "../middleware/auth.js";
 import bcrypt from "bcrypt"
+import Food from "../models/Food.js";
 
-// unused method already in auth
+// ADMIN ROUTES
+
 router.post("/",authenticate,authorizeRoles("admin"), async (req,res) => {
-    const {userName,userEmail,password,role} = req.body;
+    const {userName,userEmail,password,role,foodItems} = req.body;
     try {
-        const newUser = new User({userName,userEmail,password,role});
+        const newUser = new User({userName,userEmail,password,role,foodItems});
         await newUser.save();
         res.status(201).json(newFood)
     } catch (err) {
@@ -58,5 +60,86 @@ router.put("/:id",authenticate,authorizeRoles("admin"),async (req,res) => {
         res.status(500).json({message: "Failed to update user",err})
     }
 })
+
+// USER ROUTES
+
+router.get("/me",authenticate,async (req,res) => {
+    try {
+        
+        const user = await User.findById(req.user.id).select("-password")
+        if(!user){
+            return res.status(404).json({message: "User not found."})
+        }
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({message: "Error fetching user profile", error: err.message});
+    }
+})
+
+router.get("/me/foods",authenticate,async (req,res) => {
+    try {
+        
+        const user = await User.findById(req.user.id).select("foodItems");
+        if(!user){
+            return res.status(404).json({message: "User not found."})
+        }
+        res.status(200).json(user.foodItems || []);
+
+    } catch (err) {
+        res.status(500).json({message: "Error fetching user food items", error: err.message});
+    }
+})
+
+router.post("/me/foods",authenticate, async (req,res) => {
+    const {foodId} = req.body;  
+    try {
+        const food = await Food.findById(foodId);
+        if(!food){
+           return res.status(404).json({message: "Food not found."})
+        }
+
+        const user = await User.findById(req.user.id);
+        if(!user){
+           return res.status(404).json({message: "User not found."})
+        }
+
+        const alreadyExistsInCollection = user.foodItems.some(item => item._id.toString() === foodId);
+        if(alreadyExistsInCollection){
+           return res.status(400).json({message: "Food already exists in user collection."})
+        }
+
+        user.foodItems.push(food);
+        await user.save()
+
+        res.status(200).json({message: "Food added to collection",food: food})
+        
+    } catch (error) {
+        res.status(500).json({message: "Error adding food to collection."})
+    }
+})
+
+router.delete("/me/foods/:foodId",authenticate, async (req,res) => {
+    const {foodId} = req.params;
+    try {
+        const user = await User.findById(req.user.id);
+        if(!user){
+           return res.status(404).json({message: "User not found."})
+        }
+
+        const initialLength = user.foodItems.length;
+        user.foodItems = user.foodItems.filter((item) => item._id.toString() !== foodId);
+        if(initialLength === user.foodItems.length){
+           return res.status(404).json({message: "Food not found in user collection."})
+        }
+
+        await user.save();
+
+        res.status(200).json({message: "Food added to user collection."});
+        
+    } catch (error) {
+        res.status(500).json({message: "Error deleting food from user collection.",error})
+    }
+})
+
 
 export default router;
