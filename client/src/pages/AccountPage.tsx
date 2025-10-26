@@ -134,7 +134,7 @@ const AccountPage = () => {
 
     if(loading) return <>loading food data..</>
   return (
-    <div className='pagewrap'>
+    <div className='pagewraper accpage'>
         AccountPage
         <p>{`Your foods: ${userItems.length}`}</p>
         <div>
@@ -147,11 +147,13 @@ const AccountPage = () => {
                 </div>
             ))}
         </div>
-    {userItems.length > 0 && userItems.map((userItem,i) => (
-        <div key={i}>
-            <button onClick={() => handleRemoveUserItem(userItem._id)}>🚫</button>
-            <ItemDisplay itemToDisplay={userItem} onToggle={() => onUserItemClicked(userItem)}/>
-        </div>))}
+        <div id='youritems'>
+        {userItems.length > 0 && userItems.map((userItem,i) => (
+            <div key={i}>
+                <button onClick={() => handleRemoveUserItem(userItem._id)}>🚫</button>
+                <ItemDisplay itemToDisplay={userItem} onToggle={() => onUserItemClicked(userItem)}/>
+            </div>))}
+        </div>
     </div>
   )
 }

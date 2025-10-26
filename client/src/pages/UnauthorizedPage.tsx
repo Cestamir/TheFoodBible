@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const UnauthorizedPage = () => {
   return (
-    <div className='pagewrap'>
+    <div className='pagewraper'>
         UnauthorizedPage
         <Link to={"/"}>Go back</Link>
     </div>

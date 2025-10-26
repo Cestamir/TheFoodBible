@@ -201,7 +201,7 @@ const AdminPage = () => {
   }
 
   return (
-    <div className='pagewrap'>
+    <div className='pagewraper'>
         AdminPage = 
         <ControlPanel nodeServerRunning='nah'/>
         <Link to={"/"}>Go back</Link>

@@ -111,7 +111,7 @@ const LoginPage : React.FC = () => {
     // }
 
   return (
-    <div className='pagewrap'>  
+    <div className='pagewraper'>  
         {/* load */}
         {loginLoading && registerBtn ? <div>Waiting for registration..</div> : loginLoading && !registerBtn ? <div>Waiting for login..</div> : null}
         {/* logout */}

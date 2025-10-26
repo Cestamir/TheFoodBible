@@ -87,7 +87,7 @@ const HomePage = () => {
     if(!foods || !recipes) return (<div>No data from database, check your connection.</div>)
 
   return (
-    <div className='pagewrap'>
+    <div className='pagewraper foodguide'>
     <div id='search-bar'>
         <span>The Food Guide</span>
         <input id='search-field' value={searchedItem} onChange={handleOnchange}/>

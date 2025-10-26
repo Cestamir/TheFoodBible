@@ -14,7 +14,7 @@ const ReadUserItem = ({foodItem,onClose}: ReadUserItemProps) => {
   return (
     <>
     {isRecipeItem(item) ? 
-    <div>
+    <div className='accdetail'>
         <button onClick={() => onClose()}>❌</button>
         <h2>{item.name}</h2>
         <h3>{item.diet}</h3>
@@ -28,7 +28,7 @@ const ReadUserItem = ({foodItem,onClose}: ReadUserItemProps) => {
                 <span key={i} style={{display: "block"}}>{ing}</span>
             )) : <p>No ingredients available.</p>}
         </div>
-    </div> : <div>
+    </div> : <div className='accdetail'>
         <button onClick={() => onClose()}>❌</button>
         <h2>{item.name}</h2>
         <h3>{item.foodType}</h3>

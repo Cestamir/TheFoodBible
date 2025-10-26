@@ -60,6 +60,7 @@ function App() {
     <>
     <BrowserRouter>
     <Navbar/>
+    <div className='pagewraper'>
       <Routes>
         <Route path='/account' element={<AccountPage/>}/>
         <Route path='/login' element={<LoginPage/>}/>
@@ -70,6 +71,7 @@ function App() {
         <Route path='/contact' element={<ContactPage/>}/>
         <Route path='/diet' element={<PlanPage/>}/>
       </Routes>
+    </div>
     </BrowserRouter>
     </>
   )
