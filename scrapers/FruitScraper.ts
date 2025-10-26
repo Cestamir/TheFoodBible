@@ -1,6 +1,7 @@
 import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
+import * as cheerio from "cheerio";
 
 dotenv.config();
 
@@ -34,32 +35,84 @@ async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
     return res.json();
 }
 
-async function getFruitTitlesFromWikiPageList(): Promise<string[]>{
-    const url = new URL(WIKI_API);
-    url.searchParams.set("action","parse")
-    url.searchParams.set("page", "List_of_culinary_fruits");
-    url.searchParams.set("prop", "links");
-    url.searchParams.set("format", "json");
-    url.searchParams.set("origin", "*");
+// async function getFruitTitlesFromWikiPageList(): Promise<string[]> {
+//     const url = new URL(WIKI_API);
+//     url.searchParams.set("action", "parse");
+//     url.searchParams.set("page", "List_of_culinary_fruits");
+//     url.searchParams.set("prop", "wikitext");
+//     url.searchParams.set("format", "json");
+//     url.searchParams.set("origin", "*");
 
-    const data = await fetchJson<any>(url.toString());
+//     const data = await fetchJson<any>(url.toString());
+//     const wikitext = data.parse?.wikitext?.["*"] || "";
 
-    const links = data.parse?.links || [];
-    console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
+//     const linkRegex = /\[\[([^[\]|]+)(?:\|([^[\]]+))?\]\]/g;
+//     const fruits: string[] = [];
 
-    const titles = links
-        .map((l: any) => l["*"])
-        .filter((title: string) => {
-        if (!title) return false;
-        if (title.includes(":")) return false;
-        if (title.startsWith("List of")) return false;
-        // if (title.length > 60) return false;
-        return true;
-        });
+//     let match;
+//     while ((match = linkRegex.exec(wikitext)) !== null) {
+//         const displayName = match[2] || match[1];
+//         if (
+//             displayName &&
+//             !displayName.includes(":") &&
+//             !displayName.includes("List of") &&
+//             !displayName.includes("cuisine") &&
+//             displayName.length < 60
+//         ) {
+//             fruits.push(displayName.trim());
+//         }
+//     }
 
-    console.log("After filter:", titles.slice(0, 50))
+//     return Array.from(new Set(fruits));
+// }
 
-    return Array.from(new Set(titles))
+async function getFruitTitlesFromWikiPageList(): Promise<string[]> {
+  const res = await fetch("https://en.wikipedia.org/wiki/List_of_culinary_fruits");
+  const html = await res.text();
+
+  const $ = cheerio.load(html);
+  const fruits: string[] = [];
+
+  // find the "See also" heading so we can stop before it
+  const stopHeading = $('span#See_also').closest('h2');
+
+  // Iterate over all tables before "See also"
+  $('table').each((_, table) => {
+    // If this table comes after the "See also" heading, stop
+    if ($(table).prevAll('h2').first().is(stopHeading)) return false;
+
+    // Find all rows and cells with links
+    $(table)
+      .find('tbody tr')
+      .each((_, tr) => {
+        $(tr)
+          .find('td a')
+          .each((_, a) => {
+            const name = $(a).text().trim();
+            const href = $(a).attr('href');
+            // Basic validation
+            if (
+              name &&
+              href?.startsWith('/wiki/') &&
+              !href.includes(':') &&
+              !name.includes('List of') &&
+              /^[A-Z]/.test(name) // starts with capital letter
+            ) {
+              fruits.push(name);
+            }
+          });
+      });
+  });
+
+  // Deduplicate and filter
+  const uniqueFruits = Array.from(new Set(fruits))
+    .filter((f) => f.length < 40)
+    .sort();
+
+  console.log("Found fruits:", uniqueFruits.slice(0, 50));
+  console.log(`Total fruits found: ${uniqueFruits.length}`);
+
+  return uniqueFruits;
 }
 
 

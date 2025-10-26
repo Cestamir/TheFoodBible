@@ -14,19 +14,22 @@ import { setError, setFoods, setLoading, setRecipes } from './reduxstore/itemsSl
 import LoginPage from './pages/LoginPage'
 import { isExpiredToken } from './utils/types'
 import AccountPage from './pages/AccountPage'
+import { logout } from './reduxstore/authSlice'
 //bmi calculator componet to add
 
 
 function App() {
+
+    const dispatch = useDispatch();
 
   const token = localStorage.getItem("token");
     if(token && isExpiredToken(token)){
         alert("please login, token expired.")
         localStorage.removeItem("token");
         localStorage.removeItem("role");
+        dispatch(logout())
     }
 
-  const dispatch = useDispatch();
   const {foods,recipes,loading} = useSelector((state : RootState) => state.items );
 
   useEffect(() => {

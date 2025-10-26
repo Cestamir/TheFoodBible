@@ -5,7 +5,6 @@ import AddFoodItem from '../components/AddFoodItem';
 import ItemsDisplay from '../components/ItemsDisplay';
 import ControlPanel from '../ControlPanel';
 import { isExpiredToken, isFoodItem, isRecipeItem, type Item } from '../utils/types';
-import type { foodFace,recipeFace } from '../utils/types';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../reduxstore/store';
 import { addFood, addRecipe, deleteFood, deleteRecipe, updateFood, updateRecipe } from '../reduxstore/itemsSlice';
@@ -13,10 +12,8 @@ import { addFood, addRecipe, deleteFood, deleteRecipe, updateFood, updateRecipe 
 
 type DietType = "" | "all" | "carnivorous" | "vegetarian" | "fruitarian";
 
-type items = foodFace | recipeFace;
-
 const HomePage = () => {
-    
+
     // Redux
     const dispatch = useDispatch();
     const {foods,recipes,loading} = useSelector((state: RootState) => state.items);
@@ -90,7 +87,7 @@ const HomePage = () => {
     if(!foods || !recipes) return (<div>No data from database, check your connection.</div>)
 
   return (
-    <>
+    <div className='pagewrap'>
     <div id='search-bar'>
         <span>The Food Guide</span>
         <input id='search-field' value={searchedItem} onChange={handleOnchange}/>
@@ -131,7 +128,7 @@ const HomePage = () => {
         onDelete={deleteItem} 
         items={itemsList} />}
     </div>
-    </>
+    </div>
   )
 }
 

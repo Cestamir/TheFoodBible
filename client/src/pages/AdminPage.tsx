@@ -18,6 +18,7 @@ const AdminPage = () => {
   const [updateDietBtn,setUpdateDietBtn] = useState<boolean>(false);
   const [newDiet,setNewDiet] = useState<Diet>({planName: "",duration: 30,goal: ""});
 
+  // need to implement to parent component to load for the entire application
   useEffect(() => {
     if(diets.length === 0){
       const loadData = async() => {
@@ -200,7 +201,7 @@ const AdminPage = () => {
   }
 
   return (
-    <div>
+    <div className='pagewrap'>
         AdminPage = 
         <ControlPanel nodeServerRunning='nah'/>
         <Link to={"/"}>Go back</Link>

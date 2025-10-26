@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const ContactPage = () => {
   return (
-    <div>
+    <div className='pagewrap'>
         <h2>Linkedin: </h2>
         <h2>Email: cestmirpavlasek@gmail.com </h2>
         <h2>Github: </h2>

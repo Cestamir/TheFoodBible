@@ -1,20 +1,23 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import type { RootState } from '../reduxstore/store';
+import { useSelector } from 'react-redux';
+
 
 const PlanPage = () => {
 
 
-    const dietPlans = [{planName: "Get fit",goal: "lose weight",duration: "3-6 months"},{planName: "Get strong",goal: "maintain weight",duration: "3 months"},{planName: "Get big",goal: "gain weight",duration: "6 months"},{planName: "locked in",goal: "get shredded",duration: "???"},]
+    const {diets} = useSelector((state: RootState) => state.diet);
 
   return (
-    <div>
+    <div className='pagewrap'>
         <h2>Choose your diet plan:</h2>
         <div>
-            {dietPlans.map((item) => (
-                <div key={item.planName}>
-                    <h3>{item.planName}</h3>
-                    <p>GOAL: {item.goal}</p>
-                    <p>TIME: {item.duration}</p>
+            {diets.length < 1 ? <p>Loading..</p> : diets.map((diet) => (
+                <div key={diet.planName}>
+                    <h3>{diet.planName}</h3>
+                    <p>GOAL: {diet.goal}</p>
+                    <p>TIME: {diet.duration} days</p>
                     <button>Start !</button>
                 </div>
             ))}

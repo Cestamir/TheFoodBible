@@ -134,7 +134,7 @@ const AccountPage = () => {
 
     if(loading) return <>loading food data..</>
   return (
-    <div>
+    <div className='pagewrap'>
         AccountPage
         <p>{`Your foods: ${userItems.length}`}</p>
         <div>

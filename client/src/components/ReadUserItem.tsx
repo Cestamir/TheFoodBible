@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Item } from '../utils/types'
-import { isRecipeItem,isFoodItem } from '../utils/types'
+import { isRecipeItem } from '../utils/types'
 
 interface ReadUserItemProps{
     foodItem: Item,

@@ -8,7 +8,7 @@ const LandingPage = () => {
   const {role,isAuthenticated} = useSelector((state: RootState) => state.auth);
 
   return (
-    <div>
+    <div className='pagewrap'>
         <h2>Welcome to the food app for your needs!</h2>
         <Link to={"/home"}>Search for food/recipe</Link>
         {(role === "admin" || role === "user") ? <Link to={"/diet"}>Choose a diet plan</Link> : null}
