@@ -35,82 +35,54 @@ async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
     return res.json();
 }
 
-// async function getFruitTitlesFromWikiPageList(): Promise<string[]> {
-//     const url = new URL(WIKI_API);
-//     url.searchParams.set("action", "parse");
-//     url.searchParams.set("page", "List_of_culinary_fruits");
-//     url.searchParams.set("prop", "wikitext");
-//     url.searchParams.set("format", "json");
-//     url.searchParams.set("origin", "*");
-
-//     const data = await fetchJson<any>(url.toString());
-//     const wikitext = data.parse?.wikitext?.["*"] || "";
-
-//     const linkRegex = /\[\[([^[\]|]+)(?:\|([^[\]]+))?\]\]/g;
-//     const fruits: string[] = [];
-
-//     let match;
-//     while ((match = linkRegex.exec(wikitext)) !== null) {
-//         const displayName = match[2] || match[1];
-//         if (
-//             displayName &&
-//             !displayName.includes(":") &&
-//             !displayName.includes("List of") &&
-//             !displayName.includes("cuisine") &&
-//             displayName.length < 60
-//         ) {
-//             fruits.push(displayName.trim());
-//         }
-//     }
-
-//     return Array.from(new Set(fruits));
-// }
-
 async function getFruitTitlesFromWikiPageList(): Promise<string[]> {
   const res = await fetch("https://en.wikipedia.org/wiki/List_of_culinary_fruits");
   const html = await res.text();
-
   const $ = cheerio.load(html);
   const fruits: string[] = [];
 
-  // find the "See also" heading so we can stop before it
-  const stopHeading = $('span#See_also').closest('h2');
+  const content = $('#mw-content-text');
+  let reachedStop = false;
 
-  // Iterate over all tables before "See also"
-  $('table').each((_, table) => {
-    // If this table comes after the "See also" heading, stop
-    if ($(table).prevAll('h2').first().is(stopHeading)) return false;
+  content.find('*').each((_, el) => {
+    const $el = $(el);
 
-    // Find all rows and cells with links
-    $(table)
-      .find('tbody tr')
-      .each((_, tr) => {
+    if (
+      $el.hasClass('mw-heading') &&
+      $el.text().trim().toLowerCase().startsWith('see also')
+    ) {
+      reachedStop = true;
+      return false; 
+    }
+
+    if (!reachedStop && $el.is('table')) {
+      $el.find('tr').each((_, tr) => {
         $(tr)
-          .find('td a')
+          .find('td a[href^="/wiki/"]')
           .each((_, a) => {
             const name = $(a).text().trim();
             const href = $(a).attr('href');
-            // Basic validation
+
             if (
               name &&
-              href?.startsWith('/wiki/') &&
+              href &&
               !href.includes(':') &&
               !name.includes('List of') &&
-              /^[A-Z]/.test(name) // starts with capital letter
+              /^[A-Z]/.test(name)
             ) {
               fruits.push(name);
             }
           });
       });
+    }
   });
 
-  // Deduplicate and filter
   const uniqueFruits = Array.from(new Set(fruits))
     .filter((f) => f.length < 40)
     .sort();
 
-  console.log("Found fruits:", uniqueFruits.slice(0, 50));
-  console.log(`Total fruits found: ${uniqueFruits.length}`);
+  console.log(`✅ Total fruits found: ${uniqueFruits.length}`);
+  console.log(uniqueFruits.slice(0, 30));
 
   return uniqueFruits;
 }
@@ -204,7 +176,7 @@ async function saveToMongo(records: Fruit[]){
  const client = new MongoClient(MONGO_URI);
   await client.connect();
   const db = client.db("myFoodDb");
-  const coll = db.collection<Fruit>("fruits");
+  const coll = db.collection<Fruit>("foods");
 
   const ops = records.map(rec => ({
     updateOne: {
