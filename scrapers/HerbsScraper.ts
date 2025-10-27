@@ -1,6 +1,7 @@
 import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
+import * as cheerio from "cheerio";
 
 dotenv.config();
 
@@ -34,35 +35,109 @@ async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
     return res.json();
 }
 
-async function getHerbTitlesFromWikiPageList(): Promise<string[]>{
-    const url = new URL(WIKI_API);
-    url.searchParams.set("action","parse")
-    url.searchParams.set("page", "List_of_culinary_herbs_and_spices");
-    url.searchParams.set("prop", "links");
-    url.searchParams.set("format", "json");
-    url.searchParams.set("origin", "*");
+// async function getHerbTitlesFromWikiPageList(): Promise<string[]>{
+//     const url = new URL(WIKI_API);
+//     url.searchParams.set("action","parse")
+//     url.searchParams.set("page", "List_of_culinary_herbs_and_spices");
+//     url.searchParams.set("prop", "links");
+//     url.searchParams.set("format", "json");
+//     url.searchParams.set("origin", "*");
 
-    console.log(url)
+//     console.log(url)
 
-    const data = await fetchJson<any>(url.toString());
+//     const data = await fetchJson<any>(url.toString());
 
-    const links = data.parse?.links || [];
-    console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
+//     const links = data.parse?.links || [];
+//     console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
 
-    const titles = links
-        .map((l: any) => l["*"])
-        .filter((title: string) => {
-        if (!title) return false;
-        if (title.includes(":")) return false;
-        if (title.startsWith("List of")) return false;
-        // if (title.length > 60) return false;
-        return true;
-        });
+//     const titles = links
+//         .map((l: any) => l["*"])
+//         .filter((title: string) => {
+//         if (!title) return false;
+//         if (title.includes(":")) return false;
+//         if (title.startsWith("List of")) return false;
+//         // if (title.length > 60) return false;
+//         return true;
+//         });
 
-    console.log("After filter:", titles.slice(0, 50))
+//     console.log("After filter:", titles.slice(0, 50))
 
-    return Array.from(new Set(titles))
+//     return Array.from(new Set(titles))
+// }
+
+export async function getHerbsTitlesFromWiki(): Promise<string[]> {
+  const url = "https://en.wikipedia.org/wiki/List_of_culinary_herbs_and_spices";
+  const res = await fetch(url);
+  const html = await res.text();
+  const $ = cheerio.load(html);
+
+  const herbs: string[] = [];
+  const content = $("#mw-content-text .mw-parser-output");
+  let reachedStop = false;
+
+  content.children().each((_, el) => {
+    if (reachedStop) return;
+    const $el = $(el);
+
+    if ($el.is("div.mw-heading") && $el.find("h2#See_also").length > 0) {
+        reachedStop = true;
+        return;
+    }
+
+    if ($el.is("div.div-col")) {
+      $el.find("> ul > li").each((_, li) => {
+        processLi($(li), herbs,$);
+      });
+    }
+  });
+
+  const uniqueHerbs = Array.from(new Set(herbs))
+    .filter((h) => h.length < 60)
+    .sort((a, b) => a.localeCompare(b));
+
+  console.log(`✅ Found ${uniqueHerbs.length} total herbs/spices`);
+  console.log(uniqueHerbs.slice(0, 25));
+
+  return uniqueHerbs;
 }
+
+function processLi($li: cheerio.Cheerio<any>, herbs: string[],$: cheerio.CheerioAPI) {
+  const name = extractHerbName($li,$);
+  if (name && !herbs.includes(name)) herbs.push(name);
+
+  $li.find("> ul > li").each((_, nestedLi) => {
+    processLi($(nestedLi), herbs,$);
+  });
+}
+
+function extractHerbName($li: cheerio.Cheerio<any>,$: cheerio.CheerioAPI): string {
+  // Get all child nodes
+  const nodes = $li.contents().toArray();
+
+  for (const n of nodes) {
+    if (n.type === "text") {
+      const txt = (n.data || "").trim();
+      if (!txt) continue;
+      // Stop at ",", "/", "(", "—"
+      const name = txt.split(/[,/()—]/)[0]!.trim();
+      if (name) return name;
+    }
+
+    if (n.type === "tag") {
+      const tag = n.tagName.toLowerCase();
+      if (tag === "i" || tag === "a") {
+        const txt = $(n).text().trim();
+        if (!txt) continue;
+        const name = txt.split(/[,/()—]/)[0]!.trim();
+        if (name) return name;
+      }
+    }
+  }
+
+  const full = $li.text().trim();
+  return full.split(/[,/()—]/)[0]!.trim();
+}
+
 
 
 async function getWikiMetadata(titles: string[]): Promise<WikiHerbMeta[]>{
@@ -174,7 +249,7 @@ async function saveToMongo(records: Herb[]){
 
 async function main(){
     console.log("getting herbs and spices from wiki..")
-    const titles =  await getHerbTitlesFromWikiPageList();
+    const titles =  await getHerbsTitlesFromWiki();
 
     console.log(`Found ${titles.length} Herbs and spices titles.`);
     const wikiMeta = await getWikiMetadata(titles);
