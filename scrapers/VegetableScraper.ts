@@ -1,6 +1,7 @@
 import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
+import * as cheerio from 'cheerio'
 
 dotenv.config();
 
@@ -35,31 +36,87 @@ async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
 }
 
 async function getVegetableTitlesFromWikiPageList(): Promise<string[]>{
-    const url = new URL(WIKI_API);
-    url.searchParams.set("action","parse")
-    url.searchParams.set("page", "List_of_vegetables");
-    url.searchParams.set("prop", "links");
-    url.searchParams.set("format", "json");
-    url.searchParams.set("origin", "*");
+    // const url = new URL(WIKI_API);
+    // url.searchParams.set("action","parse")
+    // url.searchParams.set("page", "List_of_vegetables");
+    // url.searchParams.set("prop", "links");
+    // url.searchParams.set("format", "json");
+    // url.searchParams.set("origin", "*");
 
-    const data = await fetchJson<any>(url.toString());
+    // const data = await fetchJson<any>(url.toString());
 
-    const links = data.parse?.links || [];
-    console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
+    // const links = data.parse?.links || [];
+    // console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
 
-    const titles = links
-        .map((l: any) => l["*"])
-        .filter((title: string) => {
-        if (!title) return false;
-        if (title.includes(":")) return false;
-        if (title.startsWith("List of")) return false;
-        // if (title.length > 60) return false;
-        return true;
-        });
+    // const titles = links
+    //     .map((l: any) => l["*"])
+    //     .filter((title: string) => {
+    //     if (!title) return false;
+    //     if (title.includes(":")) return false;
+    //     if (title.startsWith("List of")) return false;
+    //     // if (title.length > 60) return false;
+    //     return true;
+    //     });
 
-    console.log("After filter:", titles.slice(0, 50))
+    // console.log("After filter:", titles.slice(0, 50))
 
-    return Array.from(new Set(titles))
+    // return Array.from(new Set(titles))
+
+    const res = await fetch("https://en.wikipedia.org/wiki/List_of_vegetables");
+      const html = await res.text();
+      const $ = cheerio.load(html);
+      const vegetables: string[] = [];
+    
+      const content = $('#mw-content-text');
+      let reachedStop = false;
+    
+      content.find('*').each((_, el) => {
+        const $el = $(el);
+    
+        if (
+          $el.hasClass('mw-heading') &&
+          $el.text().trim().toLowerCase().startsWith('see also')
+        ) {
+          reachedStop = true;
+          return false; 
+        }
+    
+        if (!reachedStop && $el.is('table')) {
+          $el.find('tr').each((_, tr) => {
+            $(tr)
+              .find('td a[href^="/wiki/"]')
+                .each((_, a) => {
+                const $a = $(a);
+                const text = $a.text() ?? "";
+                const href = $a.attr("href") ?? "";
+
+                const rawName = text
+                    .split("/")[0]!
+                    .replace(/\s*\(.*?\)\s*/g, "")
+                    .trim();
+
+                if (
+                    rawName &&
+                    href &&
+                    !href.includes(":") &&
+                    !rawName.includes("List of") &&
+                    /^[A-Z]/.test(rawName)
+                ) {
+                    vegetables.push(rawName);
+                }
+                });
+          });
+        }
+      });
+    
+      const uniqueVegetables = Array.from(new Set(vegetables))
+        .filter((f) => f.length < 40)
+        .sort();
+    
+      console.log(`✅ Total vegetables found: ${uniqueVegetables.length}`);
+      console.log(uniqueVegetables.slice(0, 30));
+    
+      return uniqueVegetables;
 }
 
 
