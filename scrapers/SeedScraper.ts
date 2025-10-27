@@ -41,68 +41,302 @@ async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
     return res.json();
 }
 
-async function getSeedTitlesFromWikiTables(): Promise<WikiTableSeed[]>{
-    const url = "https://en.wikipedia.org/wiki/List_of_edible_seeds";
-    const res = await fetch(url);
-    const html = await res.text();
+export async function getSeedTitlesFromWiki(): Promise<WikiTableSeed[]> {
+  const url = "https://en.wikipedia.org/wiki/List_of_edible_seeds";
+  const res = await fetch(url);
+  const html = await res.text();
+  const $ = cheerio.load(html);
 
-    const $ = cheerio.load(html);
-    const seeds : WikiTableSeed[] = [];
+  const seeds: WikiTableSeed[] = [];
+  const content = $("#mw-content-text .mw-parser-output");
 
-    $("table.wikitable").each((_,table) => {
-        $(table).find("tr").each((_,row) => {
-            const cells = $(row).find("td")
-            if(cells.length >= 2){
-                const nameCell = $(cells[cells.length - 2]);
-                const imageCell = $(cells[cells.length - 1]);
+  const children = content.children();
+  let shouldStop = false;
+  
+  children.each((_, child) => {
+    if (shouldStop) return false;
+    
+    const $child = $(child);
+    
+    // old structure
+    // if ($child.is("h2")) {
+    //   const $headline = $child.find(".mw-headline");
+    //   const headlineId = $headline.attr("id");
+    //   const headlineText = $headline.text().trim().toLowerCase();
+      
+    //   if (headlineId === "See_also" || 
+    //       headlineText === "see also" || 
+    //       headlineText.startsWith("see also")) {
+    //     shouldStop = true;
+    //     return false; // stop iteration
+    //   }
+    // }
 
-                const name = nameCell.text().trim();
-                let imageUrl : string | undefined;
-                const img = imageCell.find("img").attr("src");
-                if(img){
-                    imageUrl = img.startsWith("http") ? img : `https:${img}`
-                }
+    // new structure
+    if ($child.is("h2") || $child.hasClass("mw-heading")) {
 
-                if(name){
-                    seeds.push({
-                        name,
-                        imageUrl,
-                    })
-                }
-            }
-        })
-    })
+      const $heading = $child.is("h2") ? $child : $child.find("h2");
+      const headlineId = $heading.attr("id");
+      const headlineText = $heading.text().trim().toLowerCase();
+      
+      if (headlineId === "See_also" || 
+          headlineText === "see also" || 
+          headlineText.startsWith("see also")) {
+        shouldStop = true;
+        return false; // stop iteration
+      }
+    }
+    
+    // Process tables
+    if ($child.is("table.wikitable")) {
+      $child.find("tr").each((_, row) => {
+        const $row = $(row);
+        if ($row.find("th").length) return;
 
-    return seeds;
-}
+        const cells = $row.find("td");
+        if (!cells.length) return;
 
-async function getSeedTitlesFromWikiPageList(): Promise<string[]>{
-    const url = new URL(WIKI_API);
-    url.searchParams.set("action","parse")
-    url.searchParams.set("page", "List_of_edible_seeds");
-    url.searchParams.set("prop", "links");
-    url.searchParams.set("format", "json");
-    url.searchParams.set("origin", "*");
+        let nameCell: any | null = null;
 
-    const data = await fetchJson<any>(url.toString());
+        cells.each((i, cell) => {
+          if (i === 0) return; // skip first column
+          const $cell = $(cell);
+          const children = $cell.children();
 
-    const links = data.parse?.links || [];
-    console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
-
-    const titles = links
-        .map((l: any) => l["*"])
-        .filter((title: string) => {
-        if (!title) return false;
-        if (title.includes(":")) return false;
-        if (title.startsWith("List of")) return false;
-        // if (title.length > 60) return false;
-        return true;
+          if (
+            children.length === 0 ||
+            (children.length === 1 && children.first().is("a"))
+          ) {
+            nameCell = $cell;
+            return false;
+          }
         });
 
-    console.log("After filter:", titles.slice(0, 50))
+        if (!nameCell) return;
 
-    return Array.from(new Set(titles))
+        let name = cleanName(nameCell.text());
+        if (!name) return;
+
+        const imgSrc = $row.find("img").attr("src");
+        const imageUrl = imgSrc
+          ? imgSrc.startsWith("http")
+            ? imgSrc
+            : `https:${imgSrc}`
+          : undefined;
+
+        if (!seeds.some((s) => s.name === name)) {
+          seeds.push({ name, imageUrl });
+        }
+      });
+    }
+    
+    // Process direct ul children OR ul elements inside divs (but only direct children of this element)
+    let listsToProcess: any[] = [];
+    
+    if ($child.is("ul")) {
+      listsToProcess.push($child);
+    } else if ($child.is("div")) {
+      // Only get direct child ul elements
+      $child.children("ul").each((_, ul) => {
+        listsToProcess.push($(ul));
+      });
+    }
+    
+    for (const $ul of listsToProcess) {
+      $ul.find("> li").each((_: any, li: any) => {
+        const $li = $(li);
+
+        // find nested links
+        const nestedUls = $li.find("> ul");
+        if (nestedUls.length > 0) {
+          nestedUls.find("> li > a").each((_, nestedLink: any) => {
+            const name = cleanName($(nestedLink).text());
+            if (name && !seeds.some((s) => s.name === name)) {
+              seeds.push({ name });
+            }
+          });
+          return;
+        }
+
+        const link = $li.find("> a").first();
+        const text = link.length ? link.text() : $li.text();
+        
+        const parts = text.split(/\s*[–—-]\s*/);
+        
+        for (const part of parts) {
+          const name = cleanName(part);
+          if (name && !seeds.some((s) => s.name === name)) {
+            seeds.push({ name });
+          }
+        }
+      });
+    }
+  });
+
+//   sort
+  const uniqueSeeds = Array.from(new Map(seeds.map((s) => [s.name, s])).values())
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`✅ Found ${uniqueSeeds.length} total seeds`);
+  console.log(uniqueSeeds.slice(0, 25));
+
+  return uniqueSeeds;
 }
+
+// clean name texts func for titles
+function cleanName(text?: string): string {
+  if (!text) return "";
+
+  const str: string = text;
+
+  let name = str.split("/")[0]!;
+  name = name.split(",")[0]!;
+  name = name.replace(/\s*\(.*?\)\s*/g, "");
+  name = name.trim();
+
+  if (!name || name.length > 60 || !/^[A-Za-z]/.test(name)) return "";
+
+  return name;
+}
+
+
+// async function getSeedTitlesFromWiki(): Promise<WikiTableSeed[]> {
+//   const url = "https://en.wikipedia.org/wiki/List_of_edible_seeds";
+//   const res = await fetch(url);
+//   const html = await res.text();
+
+//   const $ = cheerio.load(html);
+//   const seeds: WikiTableSeed[] = [];
+
+//   const content = $("#mw-content-text");
+//   let reachedStop = false;
+
+//   // === TABLES ===
+//   content.find("table.wikitable").each((_, table) => {
+//     if (reachedStop) return;
+//     const $table = $(table);
+
+//     $table.find("tr").each((_, row) => {
+//       const $row = $(row);
+//       if ($row.find("th").length) return;
+
+//       const cells = $row.find("td");
+//       if (!cells.length) return;
+
+//       let nameCell: any | null = null;
+
+//       cells.each((i, cell) => {
+//         if (i === 0) return; // skip first column
+//         const $cell = $(cell);
+//         const children = $cell.children();
+
+//         if (
+//           children.length === 0 ||
+//           (children.length === 1 && children.first().is("a"))
+//         ) {
+//           nameCell = $cell;
+//           return false;
+//         }
+//       });
+
+//       if (!nameCell) return;
+
+//       let name = nameCell.text().trim();
+//       name = name
+//         .split(/[–-]/)[0]
+//         .split("/")[0]
+//         .split(",")[0] // 👈 split by comma, take first
+//         .replace(/\s*\(.*?\)\s*/g, "")
+//         .trim();
+
+//       if (!name) return;
+
+//       const imgSrc = $row.find("img").attr("src");
+//       const imageUrl = imgSrc
+//         ? imgSrc.startsWith("http")
+//           ? imgSrc
+//           : `https:${imgSrc}`
+//         : undefined;
+
+//       if (!seeds.some((s) => s.name === name)) {
+//         seeds.push({ name, imageUrl });
+//       }
+//     });
+//   });
+
+//   // === LISTS ===
+//   content.find("ul").each((_, ul) => {
+//     if (reachedStop) return;
+//     const $ul = $(ul);
+
+//     const prevHeader = $ul.prevAll("h2, h3").first();
+//     if (
+//       prevHeader.length &&
+//       prevHeader.text().trim().toLowerCase().startsWith("see also")
+//     ) {
+//       reachedStop = true;
+//       return false;
+//     }
+
+//     $ul.find("> li").each((_, li) => {
+//       const $li = $(li);
+
+//       if ($li.find("ul").length) return;
+
+//       let text = $li.text().replace(/\s*\(.*?\)\s*/g, "").trim();
+//       if (!text) return;
+
+//       const parts = text
+//         .split(/[,–-]/)
+//         .map((t) => t.trim())
+//         .filter((t) => t && /^[A-Z]/.test(t) && t.length < 60);
+
+//       for (const name of parts) {
+//         if (!seeds.some((s) => s.name === name)) {
+//           seeds.push({ name });
+//         }
+//       }
+//     });
+//   });
+
+//   const uniqueSeeds = Array.from(new Map(seeds.map((s) => [s.name, s])).values())
+//     .sort((a, b) => a.name.localeCompare(b.name));
+
+//   console.log(`✅ Found ${uniqueSeeds.length} total seeds`);
+//   console.log(uniqueSeeds.slice(0, 25));
+
+//   return uniqueSeeds;
+// }
+
+// all code for wiki api
+
+// async function getSeedTitlesFromWikiPageList(): Promise<string[]>{
+//     const url = new URL(WIKI_API);
+//     url.searchParams.set("action","parse")
+//     url.searchParams.set("page", "List_of_edible_seeds");
+//     url.searchParams.set("prop", "links");
+//     url.searchParams.set("format", "json");
+//     url.searchParams.set("origin", "*");
+
+//     const data = await fetchJson<any>(url.toString());
+
+//     const links = data.parse?.links || [];
+//     console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
+
+//     const titles = links
+//         .map((l: any) => l["*"])
+//         .filter((title: string) => {
+//         if (!title) return false;
+//         if (title.includes(":")) return false;
+//         if (title.startsWith("List of")) return false;
+//         // if (title.length > 60) return false;
+//         return true;
+//         });
+
+//     console.log("After filter:", titles.slice(0, 50))
+
+//     return Array.from(new Set(titles))
+// }
 
 
 async function getWikiMetadata(titles: string[]): Promise<WikiSeedMeta[]>{
@@ -213,21 +447,24 @@ async function saveToMongo(records: Seed[]){
 
 
 async function main(){
-    console.log("getting foods from wiki..")
-    const linkedTitles =  await getSeedTitlesFromWikiPageList();
-    const tableSeeds = await getSeedTitlesFromWikiTables();
-    console.log(`found ${tableSeeds.length} seeds from tables.`)
-    console.log(`Found ${linkedTitles.length} seed titles.`);
+    // console.log("getting foods from wiki..")
+    // const linkedTitles =  await getSeedTitlesFromWikiPageList();
+    // const tableSeeds = await getSeedTitlesFromWikiTables();
+    // console.log(`found ${tableSeeds.length} seeds from tables.`)
+    // console.log(`Found ${linkedTitles.length} seed titles.`);
 
-    const allTitles = Array.from(new Set([
-        ...tableSeeds.map(s => s.name),
-        ...linkedTitles
-    ]))
+    // const allTitles = Array.from(new Set([
+    //     ...tableSeeds.map(s => s.name),
+    //     ...linkedTitles
+    // ]))
 
-    const wikiMeta = await getWikiMetadata(allTitles);
+    const allSeeds = await getSeedTitlesFromWiki();
+    const titles : string[] = allSeeds.map((s) => s.name)
+
+    const wikiMeta = await getWikiMetadata(titles);
 
     const wikiMetaWithFallback : WikiSeedMeta[] = wikiMeta.map(meta => {
-        const match = tableSeeds.find(s => s.name === meta.title)
+        const match = allSeeds.find(s => s.name === meta.title)
         return {
             ...meta,
             fallBackImageUrl: match?.imageUrl,
