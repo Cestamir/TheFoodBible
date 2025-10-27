@@ -37,16 +37,16 @@ const Navbar = () => {
           setNavStyle({display: "none"})
         } }}>{!hamburgerClicked ? "❌" : "💾"}</button>
       <ul id='navlist' style={navStyle}>
-        <li>{isAuthenticated && token ? <button onClick={()=> {
+        {isAuthenticated && token ? <li><button onClick={()=> {
           localStorage.removeItem('token');
           localStorage.removeItem('role');
           dispatch(clearUserItems());
           dispatch(logout());
           navigate("/login");
-          }}>logout</button> : null}</li>
-        <li>{isAuthenticated && role === 'admin' ? (<Link className='navlink' to={"/admin"}>Admin</Link>) : null }</li>
-        <li>{role === "admin" || role === "user" ? <Link className='navlink' to={"/diet"}>Diet Plans</Link> : null}</li>
-        <li>{role === "admin" || role === "user" ? <Link className='navlink' to={"/account"}>Account</Link> : null}</li>
+          }}>logout</button></li> : null}
+        {isAuthenticated && role === 'admin' ? (<li><Link className='navlink' to={"/admin"}>Admin</Link></li>) : null }
+        {role === "admin" || role === "user" ? <li><Link className='navlink' to={"/diet"}>Diet Plans</Link></li> : null}
+        {role === "admin" || role === "user" ? <li><Link className='navlink' to={"/account"}>Account</Link></li> : null}
         <li><Link className='navlink' to={"/"}>The app</Link></li>
         <li><Link className='navlink' to={"/home"}>FoodGuide</Link></li>
         <li><Link className='navlink' to={"/contact"}>Get in touch</Link></li>

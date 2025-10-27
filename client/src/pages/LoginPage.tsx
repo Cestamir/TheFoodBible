@@ -111,28 +111,29 @@ const LoginPage : React.FC = () => {
     // }
 
   return (
-    <div className='pagewraper'>  
-        {/* load */}
-        {loginLoading && registerBtn ? <div>Waiting for registration..</div> : loginLoading && !registerBtn ? <div>Waiting for login..</div> : null}
+    <div id='loginpage'>
+        <div id='loginload'>
+            {loginLoading && registerBtn ? <div>Waiting for registration..</div> : loginLoading && !registerBtn ? <div>Waiting for login..</div> : null}
+        </div>
         {/* logout */}
-        {isAuthenticated && token ? <button onClick={() => {
+        {isAuthenticated && token ? <button id='logoutbtn' onClick={() => {
             dispatch(logout());
             dispatch(clearUserItems());
             localStorage.removeItem("token");
             localStorage.removeItem("role");}}>Logout</button> :     
-        <div>
+        <div id='loginforms'>
         {!registerBtn && <div id='login'>
-            <p>Login</p>
+            <h3>Login</h3>
             <form id='loginform' onSubmit={handleSubmit}>
             <label htmlFor='logininput'>ENTER YOUR USERNAME:</label>
             <input minLength={3}  onChange={(e) => setLoginUser((prev) => ({...prev,userName: e.target.value}))} value={loginUser.userName} id='logininput'/>
             <label htmlFor='passwordlogininput' >ENTER YOUR PASSWORD:</label>
             <input type='password'  onChange={(e) => setLoginUser((prev) => ({...prev,password: e.target.value}))} value={loginUser.password} id='passwordlogininput'/>
-            <button type='submit' id='loginbtn'>LOGIN HERE</button>
+            <button type='submit' className='loginbtn submit' id='loginbtn'>LOGIN HERE</button>
             </form>
         </div>}
         {registerBtn && <div id='register'>
-            <p>Register</p>
+            <h3>Register</h3>
             <form id='registerform' onSubmit={handleSubmit}>
             <label htmlFor='registerinput'>ENTER USERNAME:</label>
             <input minLength={3}  onChange={(e) => setRegisterUser((prev) => ({...prev,userName: e.target.value}))} id='registerinput' value={registerUser.userName}/>
@@ -140,10 +141,10 @@ const LoginPage : React.FC = () => {
             <input type='password'  onChange={(e) => setRegisterUser((prev) => ({...prev,password: e.target.value}))} value={registerUser.password} id='passwordregisterinput'/>
             <label htmlFor='emailinput'>ENTER YOUR EMAIL:</label>
             <input type='email' onChange={(e) => setRegisterUser((prev) => ({...prev,userEmail: e.target.value}))} value={registerUser.userEmail} id='emailinput'/>
-            <button type='submit' id='registerbtn'>REGISTER HERE</button>
+            <button className='loginbtn submit' type='submit' id='registerbtn'>REGISTER HERE</button>
             </form>
         </div>}
-        <button onClick={() => setRegisterBtn(prev => !prev)}>{registerBtn ? "login to existing account⬇️" : "register new account"}</button>
+        <button className='loginbtn' onClick={() => setRegisterBtn(prev => !prev)}>{registerBtn ? "login to account ⬇" : "new account"}</button>
     </div>}
     </div>
   )

@@ -15,8 +15,6 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
   const [newRecipe,setNewRecipe] = useState<newRecipeFace>({name:'',instructions: '',ingredients: [],url: '',imageUrl: '',cookTime: '',author: '',type: "recipe",diet: [],createdAt: new Date()})
   const [currentIngredient,setCurrentIngredient] = useState<string>("");
 
-  const [readDisplay,setReadDisplay] = useState({display: 'block'})
-
   const token = localStorage.getItem("token")
   const navigate = useNavigate();
 
@@ -55,7 +53,7 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
     }
 
   return (
-    <div id='additem' style={readDisplay}>
+    <div id='additem'>
           <form onSubmit={handleRecipeSubmit}>
               <label>New recipe name:</label>
               <input value={newRecipe?.name} onChange={(e) => setNewRecipe((prev) => ({...prev,name: e.target.value}))} id='new-recipe-title'/>
@@ -99,7 +97,7 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
               </ul>
               <button type='submit' >Add Recipe ✅</button>
           </form>
-          <button onClick={() => setReadDisplay({display: "none"})}>❌</button>
+          <button onClick={() => onClose()}>❌</button>
     </div>
   )
 }

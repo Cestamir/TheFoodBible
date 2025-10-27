@@ -16,8 +16,6 @@ const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
 
     const [nutrientInput,setNutrientInput] = useState({name: "",unit: "",value: 0});
 
-    const [readDisplay,setReadDisplay] = useState({display: "block"})
-
     const token = localStorage.getItem("token")
     const navigate = useNavigate()
 
@@ -74,7 +72,7 @@ const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
 
 
   return (
-    <div id='additem' style={readDisplay}>
+    <div id='additem'>
         <form onSubmit={handleFoodSubmit}>
             <label>New food name:</label>
             <input min={2} value={newFood.name} onChange={(e) => setNewFood(prev => ({...prev,name: e.target.value})) } id='new-food-name'/>
@@ -102,7 +100,7 @@ const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
             ))}
             </ul>}
         </form>
-        <button onClick={() => setReadDisplay({display: "none"})}>❌</button>
+        <button onClick={() => onClose()}>❌</button>
     </div>
   )
 }

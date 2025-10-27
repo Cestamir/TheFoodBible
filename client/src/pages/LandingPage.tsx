@@ -9,10 +9,13 @@ const LandingPage = () => {
 
   return (
     <div className='pagewraper'>
-        <h2>Welcome to the food app for your needs!</h2>
-        <Link to={"/home"}>Search for food/recipe</Link>
-        {(role === "admin" || role === "user") ? <Link to={"/diet"}>Choose a diet plan</Link> : null}
-        <Link to={"/contact"}>Contact me ?</Link>
+      <div id='landingpage'>
+        <h1>Welcome to the food app for your needs!</h1>
+        <Link to={"/home"}>Food guide</Link>
+        {(role === "admin" || role === "user") ? <Link to={"/diet"}>Diet plan</Link> : null}
+        {!role ? <Link to={"/login"}>Make an account</Link> : null}
+        <Link to={"/contact"}>Contact me here XX</Link>
+      </div>
         {/* WORK TO DO:
         - complete the permissions for actions on the webapp ✅
         - Scrape better data for food to basic food like (apple,chocolate,meat,tofu,tomatoes)

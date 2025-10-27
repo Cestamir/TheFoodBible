@@ -9,6 +9,18 @@ import { addDiet, setDiets, updateDiet,deleteDiet } from '../reduxstore/dietSlic
 // add live update of the users
 
 const AdminPage = () => {
+
+    // node server running test
+    const [message,setMessage] = useState<string>("");
+    useEffect(() => {
+        fetch("/api/test")
+        .then(res => res.json())
+        .then(data => setMessage(data.message))
+        .catch((err) => {
+            console.error("error fetching data:",err)
+        })
+    },[]);
+
   // diets
 
   const {diets} = useSelector((state: RootState) => state.diet);
@@ -201,10 +213,9 @@ const AdminPage = () => {
   }
 
   return (
-    <div className='pagewraper'>
-        AdminPage = 
-        <ControlPanel nodeServerRunning='nah'/>
-        <Link to={"/"}>Go back</Link>
+    <div id='adminpage'>
+      <h2>AdminPage</h2>
+        <ControlPanel nodeServerRunning={message}/>
         <button>Populate the db with food | recipes</button>
         <button onClick={() => {manageUsers();setUserPanelClicked(prev => !prev);setUpdateBtn(false);setCreateBtn(false)}}>Manage users</button>
         <button onClick={() => setDietBtn(prev => !prev)}>Create new diet plan</button>

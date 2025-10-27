@@ -18,16 +18,6 @@ const HomePage = () => {
     const dispatch = useDispatch();
     const {foods,recipes,loading} = useSelector((state: RootState) => state.items);
 
-    // node server running test
-    const [message,setMessage] = useState<string>("");
-    useEffect(() => {
-        fetch("/api/test")
-        .then(res => res.json())
-        .then(data => setMessage(data.message))
-        .catch((err) => {
-            console.error("error fetching data:",err)
-        })
-    },[]);
     // diet plans
     const [dietPlan,setDietPlan] = useState<DietType>("all");
 
@@ -89,28 +79,32 @@ const HomePage = () => {
   return (
     <div className='pagewraper foodguide'>
     <div id='search-bar'>
-        <span>The Food Guide</span>
-        <input id='search-field' value={searchedItem} onChange={handleOnchange}/>
-        <button id='search-button' onClick={handleSearch}>Search</button>
-        {/* add new item to list */}
-        <button id='add-item' onClick={() => {setAddItemClicked((prev) => !prev)}}>Add food item +</button>
-        {/* add new recipe item to the list */}
-        <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add recipe +</button>
-        {/* select an diet option */}
-        <h3>Select your food preference:</h3>
-        <select value={dietPlan} onChange={(e : any) => setDietPlan(e.target.value)} id='diets'>
-            <option value="">--Please choose an option--</option>
-            <option value="all">All food</option>
-            <option value="carnivorous">carnivorous</option>
-            <option value="vegetarian">vegetarian</option>
-            <option value="fruitarian">fruitarian</option>
-        </select>
+        <div id='actions'>
+            {/* add new item to list */}
+            <button id='add-item' onClick={() => {setAddItemClicked((prev) => !prev)}}>Add new food +</button>
+            {/* add new recipe item to the list */}
+            <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add new recipe +</button>
+        </div>
+        <div id='search'>
+            <label htmlFor='search-field'>Search for an item..</label>
+            <input placeholder='Orange' id='search-field' value={searchedItem} onChange={handleOnchange}/>
+            <button id='search-button' onClick={handleSearch}>Search</button>
+        </div>
+        <div id='preference'>
+            <h3>Select your preference:</h3>
+            <select value={dietPlan} onChange={(e : any) => setDietPlan(e.target.value)} id='diets'>
+                <option value="">--Please choose an option--</option>
+                <option value="all">All food diets</option>
+                <option value="carnivorous">carnivorous</option>
+                <option value="vegetarian">vegetarian</option>
+                <option value="fruitarian">fruitarian</option>
+            </select>
+        </div>
+    </div>
         {/* Add recipe  */}
         {addRecipeClicked && <AddRecipeItem onAdd={addItem} onClose={() => setAddRecipeClicked(false)}/>}
         {/* Add food  */}
         {addItemClicked  && <AddFoodItem onAdd={addItem} onClose={() => setAddItemClicked(false)}/>}
-    </div>
-    <ControlPanel nodeServerRunning={message}/>
     <div id='display'>
         {selectedItemId === null  ? 
 

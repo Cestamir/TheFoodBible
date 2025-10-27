@@ -134,13 +134,16 @@ const AccountPage = () => {
 
     if(loading) return <>loading food data..</>
   return (
-    <div className='pagewraper accpage'>
-        AccountPage
-        <p>{`Your foods: ${userItems.length}`}</p>
-        <div>
-            {!isReady ? (<h3>Loading available recipes..</h3>) : (<h3>{`Available recipes: ${availableRecipes?.length}`}</h3>)}
-            {displayItem ? <ReadUserItem onClose={() => setDisplayItem(null)} foodItem={displayItem} /> : null}
-            <button onClick={() => showRecipesToCookNow()}></button>
+    <div id='accpage'>
+        <div id='accinfo'>
+            <h2>AccountPage</h2>    
+            <p>{`Your foods: ${userItems.length}`}</p>
+            <p>Your role: {role}</p>
+        </div>
+        {!isReady ? (<h3>Loading available recipes..</h3>) : (<h3>{`Available recipes: ${availableRecipes?.length}`}</h3>)}
+        {displayItem ? <ReadUserItem  onClose={() => setDisplayItem(null)} foodItem={displayItem} /> : null}
+        <div id='accrecipes'>
+            <button onClick={() => showRecipesToCookNow()}>Test btn</button>
             {availableRecipes.map((recipe,i) => (
                 <div key={i}>
                     <ItemDisplay itemToDisplay={recipe} onToggle={() => onUserItemClicked(recipe)}/>
@@ -149,7 +152,7 @@ const AccountPage = () => {
         </div>
         <div id='youritems'>
         {userItems.length > 0 && userItems.map((userItem,i) => (
-            <div key={i}>
+            <div className='youritem' key={i}>
                 <button onClick={() => handleRemoveUserItem(userItem._id)}>🚫</button>
                 <ItemDisplay itemToDisplay={userItem} onToggle={() => onUserItemClicked(userItem)}/>
             </div>))}
