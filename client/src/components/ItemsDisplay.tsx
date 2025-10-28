@@ -32,6 +32,21 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
         case "meat":
             filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "meat");
             break;
+        case "fish":
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "fish");
+            break;
+        case "egg":
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "egg");
+            break;
+        case "snacks":
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "snacks");
+            break;
+        case "dairy":
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "dairy");
+            break;
+        case "drink":
+            filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "drink");
+            break;
         case "seed":
             filteredItems = items.filter(item => isFoodItem(item) && item.foodType.toLowerCase() === "seed");
             break;
