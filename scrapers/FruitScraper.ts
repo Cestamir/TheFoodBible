@@ -1,16 +1,19 @@
 import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
+import path from "path";
 import * as cheerio from "cheerio";
 
-dotenv.config();
+import { fileURLToPath } from "url";
+import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.js"
 
-// basic settings
+// env setup
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
-const USDA_SEARCH = "https://api.nal.usda.gov/fdc/v1/foods/search";
-const USDA_DETAIL = (fdcId: number) => `https://api.nal.usda.gov/fdc/v1/food/${fdcId}`
-const USDA_API_KEY = process.env.USDA_API_KEY!;
 
 type WikiFruitMeta = {
     title: string;
@@ -27,12 +30,6 @@ type Fruit = {
     nutrition?: { name: string; value: number; unit: string }[];
     author: string;
     createdAt: Date;
-}
-
-async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
-    const res = await fetch(url,options);
-    if(!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`)
-    return res.json();
 }
 
 async function getFruitTitlesFromWikiPageList(): Promise<string[]> {
@@ -120,22 +117,6 @@ async function getWikiMetadata(titles: string[]): Promise<WikiFruitMeta[]>{
     return results;
 }
 
-async function searchUsdaByName(name: string): Promise<any[]>{
-    const url = new URL(USDA_SEARCH);
-    url.searchParams.set("api_key",USDA_API_KEY)
-    url.searchParams.set("query",name)
-    url.searchParams.set("pageSize","5");
-
-    const data = await fetchJson<any>(url.toString());
-    return data.foods || [];
-}
-
-async function getUsdaFoodDetail(fdcId: number): Promise<any>{
-    const url = new URL(USDA_DETAIL(fdcId));
-    url.searchParams.set("api_key",USDA_API_KEY);
-    return await fetchJson<any>(url.toString());
-}
-
 async function buildFruit(meta: WikiFruitMeta): Promise<Fruit>{
     const record: Fruit = {
         name: meta.title,
@@ -195,7 +176,7 @@ async function saveToMongo(records: Fruit[]){
 }
 
 
-async function main(){
+export async function runFruitScraper(){
     console.log("getting foods from wiki..")
     const titles =  await getFruitTitlesFromWikiPageList();
 
@@ -211,10 +192,10 @@ async function main(){
     await saveToMongo(records);
 }
 
-main().catch((err) => {
-    console.error("Error",err);
-    process.exit(1);
-})
+// main().catch((err) => {
+//     console.error("Error",err);
+//     process.exit(1);
+// })
 
 // // urls to scrape fruit,vegetables,nuts and seeds,meats,herbs and spices
 

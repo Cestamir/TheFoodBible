@@ -72,7 +72,7 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
                     switch(dietPlanType){
                         case "carnivorous":
                             return typeOfFood === "meat" || 
-                                typeOfFood === "beef" || 
+                                typeOfFood === "fish" || 
                                 typeOfFood === "pork" || 
                                 typeOfFood === "lamb and mutton";
                         case "vegetarian":
@@ -84,7 +84,7 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
                             return typeOfFood === "fruit" || 
                                 typeOfFood === "seed";
                         case "all food" :
-                            return item;
+                            return typeOfFood === "all food";
                         default:
                             return item;
                     }

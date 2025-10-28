@@ -198,7 +198,7 @@ async function saveToMongo(records: MeatFood[]){
 }
 
 
-async function main(){
+export async function meatScraper(){
 
     const categoryLinks = await getMeatCategoryLinks();
     console.log(`found ${categoryLinks.length} cat links.`)
@@ -323,10 +323,10 @@ async function getItemsFromCategoryPage(categoryUrl: string) : Promise<{title: s
     // return Array.from(new Set(items.map((i) => JSON.stringify(i)))).map(string => JSON.parse(string) as {title: string;url: string});
 }
 
-main().catch((err) => {
-    console.error("Error",err);
-    process.exit(1);
-})
+// main().catch((err) => {
+//     console.error("Error",err);
+//     process.exit(1);
+// })
 
 
 

@@ -1,16 +1,20 @@
 import * as cheerio from "cheerio"
 import {MongoClient} from "mongodb"
+import path from "path"
 import dotenv from "dotenv"
-import pLimit from "p-limit"
+import pLimit from "p-limit"  
+import { fileURLToPath } from "url";
+import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.js"
 
-dotenv.config();
+// env setup
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
 
 // basic settings
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
-const USDA_SEARCH = "https://api.nal.usda.gov/fdc/v1/foods/search";
-const USDA_DETAIL = (fdcId: number) => `https://api.nal.usda.gov/fdc/v1/food/${fdcId}`
-const USDA_API_KEY = process.env.USDA_API_KEY!;
 
 type WikiSeedMeta = {
     title: string;
@@ -33,12 +37,6 @@ type Seed = {
 type WikiTableSeed = {
     name: string,
     imageUrl?: string | undefined,
-}
-
-async function fetchJson<T>(url: string,options?: RequestInit): Promise<T>{
-    const res = await fetch(url,options);
-    if(!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`)
-    return res.json();
 }
 
 export async function getSeedTitlesFromWiki(): Promise<WikiTableSeed[]> {
@@ -371,22 +369,6 @@ async function getWikiMetadata(titles: string[]): Promise<WikiSeedMeta[]>{
     return results;
 }
 
-async function searchUsdaByName(name: string): Promise<any[]>{
-    const url = new URL(USDA_SEARCH);
-    url.searchParams.set("api_key",USDA_API_KEY)
-    url.searchParams.set("query",name)
-    url.searchParams.set("pageSize","5");
-
-    const data = await fetchJson<any>(url.toString());
-    return data.foods || [];
-}
-
-async function getUsdaFoodDetail(fdcId: number): Promise<any>{
-    const url = new URL(USDA_DETAIL(fdcId));
-    url.searchParams.set("api_key",USDA_API_KEY);
-    return await fetchJson<any>(url.toString());
-}
-
 async function buildSeed(meta: WikiSeedMeta): Promise<Seed>{
     const record: Seed = {
         name: meta.title,
@@ -402,6 +384,7 @@ async function buildSeed(meta: WikiSeedMeta): Promise<Seed>{
         if (results.length === 0) return record;
 
         const best = results[0];
+        console.log(best)
         const detail = await getUsdaFoodDetail(best.fdcId);
 
         record.fdcId = best.fdcId;
@@ -427,7 +410,7 @@ async function saveToMongo(records: Seed[]){
  const client = new MongoClient(MONGO_URI);
   await client.connect();
   const db = client.db("myFoodDb");
-  const coll = db.collection<Seed>("seeds");
+  const coll = db.collection<Seed>("foods");
 
   const ops = records.map(rec => ({
     updateOne: {
@@ -446,7 +429,7 @@ async function saveToMongo(records: Seed[]){
 }
 
 
-async function main(){
+export async function runSeedScraper(){
     // console.log("getting foods from wiki..")
     // const linkedTitles =  await getSeedTitlesFromWikiPageList();
     // const tableSeeds = await getSeedTitlesFromWikiTables();
@@ -480,7 +463,7 @@ async function main(){
     await saveToMongo(records);
 }
 
-main().catch((err) => {
-    console.error("Error",err);
-    process.exit(1);
-})
+// main().catch((err) => {
+//     console.error("Error",err);
+//     process.exit(1);
+// })

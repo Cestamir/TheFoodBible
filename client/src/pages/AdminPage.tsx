@@ -5,10 +5,15 @@ import { type User,type Diet, isExpiredToken } from '../utils/types'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '../reduxstore/store'
 import { addDiet, setDiets, updateDiet,deleteDiet } from '../reduxstore/dietSlice'
+import ScraperButton from '../components/ScraperButton'
 
 // add live update of the users
 
 const AdminPage = () => {
+
+  // populate db
+
+  const [populateBtn,setPopulateBtn] = useState<boolean>(false);
 
     // node server running test
     const [message,setMessage] = useState<string>("");
@@ -216,9 +221,18 @@ const AdminPage = () => {
     <div id='adminpage'>
       <h2>AdminPage</h2>
         <ControlPanel nodeServerRunning={message}/>
-        <button>Populate the db with food | recipes</button>
+        <button onClick={() => setPopulateBtn(prev => !prev)}>Populate the db with food & recipes</button>
         <button onClick={() => {manageUsers();setUserPanelClicked(prev => !prev);setUpdateBtn(false);setCreateBtn(false)}}>Manage users</button>
         <button onClick={() => setDietBtn(prev => !prev)}>Create new diet plan</button>
+        // populate db
+        {populateBtn ? <div>
+          <ScraperButton sourceName='fruits'/>
+          <ScraperButton sourceName='seeds'/>
+          <ScraperButton sourceName='recipes'/>
+          <ScraperButton sourceName='vegetabbles'/>
+          <ScraperButton sourceName='herbs'/>
+          <ScraperButton sourceName='restItems'/>
+        </div> : null}
         {/* manage diet plans */}
         {dietBtn && <form onSubmit={(e) => {e.preventDefault();handleDietSubmit()}}>
           <label>Name</label>

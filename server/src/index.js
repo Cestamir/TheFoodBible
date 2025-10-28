@@ -45,12 +45,14 @@ import recipeRoutes from "./routes/recipes.js"
 import authRoutes from "./routes/auth.js"
 import userRoutes from "./routes/users.js"
 import dietRoutes from "./routes/diet.js"
+import scrapeRoutes from './routes/scrape.js'
 
 app.use("/api/users",userRoutes);
 app.use("/api/recipes",recipeRoutes);
 app.use("/api/foods",foodRoutes);
 app.use("/api/auth",authRoutes);
-app.use("/api/diet",dietRoutes)
+app.use("/api/diet",dietRoutes);
+app.use("/api/scrape",scrapeRoutes);
 
 // testing the database
 

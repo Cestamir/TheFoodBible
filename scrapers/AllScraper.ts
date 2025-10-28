@@ -1,9 +1,13 @@
-import { MongoClient } from "mongodb";
-import dotenv from "dotenv";
-import * as cheerio from "cheerio";
+import {MongoClient} from "mongodb"
+import dotenv from "dotenv"
 import pLimit from "p-limit"
+import path from "path";
+import { fileURLToPath } from "url";
+// env setup
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
 
 const uri = process.env.MONGO_URI!;
 const DB_NAME = "myFoodDb";
@@ -154,35 +158,33 @@ function mapToRecipe(meal: MealDBRecipe): Recipe {
   };
 }
 
-async function main() {
-  console.log("🔍 Fetching recipes from TheMealDB...");
+export async function runAllRecipeScraper() {
+  console.log("🔍 Fetching all recipes from TheMealDB...");
   const client = new MongoClient(uri);
   await client.connect();
   const db = client.db(DB_NAME);
   const collection = db.collection<Recipe>(COLLECTION_NAME);
 
-  const limit = pLimit(5); // 5 concurrent fetches
+  const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
+  const limit = pLimit(5);
   const allRecipes: Recipe[] = [];
 
-  // Fetch for each keyword
-  const fetchTasks = keywords.map(keyword =>
-    limit(async () => {
-      try {
-        const meals = await fetchRecipes(keyword);
-        console.log(`✅ Found ${meals.length} for "${keyword}"`);
-        const mapped = meals.map(mapToRecipe);
-        allRecipes.push(...mapped);
-      } catch (err) {
-        console.warn(`⚠️ Error fetching "${keyword}": ${(err as Error).message}`);
-      }
-    })
+  await Promise.all(
+    alphabet.map(letter =>
+      limit(async () => {
+        const meals = await fetchRecipes(letter);
+        allRecipes.push(...meals.map(mapToRecipe));
+        console.log(`✅ ${meals.length} recipes from letter "${letter}"`);
+      })
+    )
   );
 
-  await Promise.all(fetchTasks);
+  // Deduplicate
+  const normalize = (name: string) =>
+    name.trim().toLowerCase().replace(/\s+/g, " ");
 
-  // Deduplicate by recipe name
   const uniqueRecipes = Array.from(
-    new Map(allRecipes.map(r => [r.name.toLowerCase(), r])).values()
+    new Map(allRecipes.map(r => [normalize(r.name), r])).values()
   );
 
   console.log(`🧹 ${uniqueRecipes.length} unique recipes ready to save`);
@@ -204,7 +206,7 @@ async function main() {
   console.log("🎉 Done!");
 }
 
-main().catch(err => {
-  console.error("❌ Error:", err);
-  process.exit(1);
-});
+// main().catch(err => {
+//   console.error("❌ Error:", err);
+//   process.exit(1);
+// });
