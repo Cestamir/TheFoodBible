@@ -15,9 +15,10 @@ const ReadUserItem = ({foodItem,onClose}: ReadUserItemProps) => {
     <>
     {isRecipeItem(item) ? 
     <div className='accdetail'>
-        <button onClick={() => onClose()}>❌</button>
+        <button className='smallbtn' onClick={() => onClose()}>❌</button>
         <h2>{item.name}</h2>
         <h3>{item.diet}</h3>
+        <p style={{overflowY: "scroll",height: "200px"}}>{item.instructions}</p>
         {item.imageUrl != null ? <div>
         <img width={32} height={32} src={item.imageUrl}/>
         </div> : <div>🥗</div>}
@@ -29,7 +30,7 @@ const ReadUserItem = ({foodItem,onClose}: ReadUserItemProps) => {
             )) : <p>No ingredients available.</p>}
         </div>
     </div> : <div className='accdetail'>
-        <button onClick={() => onClose()}>❌</button>
+        <button className='smallbtn' onClick={() => onClose()}>❌</button>
         <h2>{item.name}</h2>
         <h3>{item.foodType}</h3>
         {item.fdcId ? <h4>{item.fdcId}</h4> : <h4>No fdcId.</h4>}

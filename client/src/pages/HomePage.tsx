@@ -3,7 +3,7 @@ import ReadItem from '../components/ReadItem';
 import AddRecipeItem from '../components/AddRecipeItem';
 import AddFoodItem from '../components/AddFoodItem';
 import ItemsDisplay from '../components/ItemsDisplay';
-import ControlPanel from '../ControlPanel';
+import ControlPanel from '../utils/ControlPanel';
 import { isExpiredToken, isFoodItem, isRecipeItem, type Item } from '../utils/types';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../reduxstore/store';

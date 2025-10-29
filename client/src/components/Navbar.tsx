@@ -37,7 +37,7 @@ const Navbar = () => {
           setNavStyle({display: "none"})
         } }}>{!hamburgerClicked ? "❌" : "💾"}</button>
       <ul id='navlist' style={navStyle}>
-        {isAuthenticated && token ? <li><button onClick={()=> {
+        {isAuthenticated && token ? <li><button className='smallbtn' onClick={()=> {
           localStorage.removeItem('token');
           localStorage.removeItem('role');
           dispatch(clearUserItems());

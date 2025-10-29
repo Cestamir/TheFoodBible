@@ -143,17 +143,17 @@ const AccountPage = () => {
         {!isReady ? (<h3>Loading available recipes..</h3>) : (<h3>{`Available recipes: ${availableRecipes?.length}`}</h3>)}
         {displayItem ? <ReadUserItem  onClose={() => setDisplayItem(null)} foodItem={displayItem} /> : null}
         <div id='accrecipes'>
-            <button onClick={() => showRecipesToCookNow()}>Test btn</button>
+            <button className='btn' onClick={() => showRecipesToCookNow()}>Test btn</button>
             {availableRecipes.map((recipe,i) => (
                 <div key={i}>
                     <ItemDisplay itemToDisplay={recipe} onToggle={() => onUserItemClicked(recipe)}/>
                 </div>
             ))}
         </div>
-        <div id='youritems'>
+        <div className='youritems'>
         {userItems.length > 0 && userItems.map((userItem,i) => (
             <div className='youritem' key={i}>
-                <button onClick={() => handleRemoveUserItem(userItem._id)}>🚫</button>
+                <button className='smallbtn' onClick={() => handleRemoveUserItem(userItem._id)}>🚫</button>
                 <ItemDisplay itemToDisplay={userItem} onToggle={() => onUserItemClicked(userItem)}/>
             </div>))}
         </div>

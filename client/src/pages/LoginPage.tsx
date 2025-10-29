@@ -40,7 +40,7 @@ const LoginPage : React.FC = () => {
     const token = localStorage.getItem("token");
 
     const handleSubmit = async (e: React.FormEvent) => {
-        const formId : string = e.target.id
+        const formId = (e.target as HTMLFormElement).id
         e.preventDefault()
         setLoginLoading(true)
         if(formId === "loginform"){

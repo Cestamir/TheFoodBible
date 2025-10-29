@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import pLimit from "p-limit"
 import path from "path";
 import { fileURLToPath } from "url";
+import { broadcastUpdate } from "../server/src/sse.ts";
 // env setup
 
 const __filename = fileURLToPath(import.meta.url);
@@ -187,7 +188,7 @@ export async function runAllRecipeScraper() {
     new Map(allRecipes.map(r => [normalize(r.name), r])).values()
   );
 
-  console.log(`🧹 ${uniqueRecipes.length} unique recipes ready to save`);
+  console.log(`${uniqueRecipes.length} unique recipes to save`);
 
   if (uniqueRecipes.length > 0) {
     await collection.bulkWrite(
@@ -199,6 +200,7 @@ export async function runAllRecipeScraper() {
         },
       }))
     );
+    broadcastUpdate({type: "recipe",payload: uniqueRecipes})
     console.log(`✅ Saved ${uniqueRecipes.length} recipes to MongoDB`);
   }
 

@@ -3,9 +3,10 @@ import dotenv from "dotenv"
 import pLimit from "p-limit"
 import path from "path";
 import * as cheerio from "cheerio";
+import { broadcastUpdate } from "../server/src/sse.ts";
 
 import { fileURLToPath } from "url";
-import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.js"
+import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.ts"
 
 // env setup
 
@@ -14,6 +15,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
+
 type WikiHerbMeta = {
     title: string;
     fullurl: string;
@@ -241,6 +243,7 @@ export async function runHerbsScraper(){
 
     console.log(`Processed ${records.length} herbs and spices records.`);
     await saveToMongo(records);
+    broadcastUpdate({type: "food",payload: records});
 }
 
 // main().catch((err) => {

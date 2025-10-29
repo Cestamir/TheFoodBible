@@ -19,6 +19,7 @@ dotenv.config({path: '../.env'})
 import cors from "cors"
 import mongoose from "mongoose"
 import express from "express"
+import {registerClient} from "./sse.ts"
 const app = express();
 
 const PORT = process.env.PORT || 5050;
@@ -38,6 +39,24 @@ mongoose.connect(MONGO_URI)
     console.log('✅ MongoDB connected')
     console.log('📂 Database:', mongoose.connection.db.databaseName);})
   .catch((err) => console.error('❌ MongoDB connection error:', err));
+
+// SSE endpoint
+
+let clients = [];
+
+app.get("/api/items/stream",(req,res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  registerClient(res);
+})
+
+export function broadcastUpdate(){
+  clients.forEach(client => {
+    client.write(`data: ${JSON.stringify(data)}\n\n`);
+  })
+}
 
 // routes + route imports
 import foodRoutes from "./routes/foods.js"

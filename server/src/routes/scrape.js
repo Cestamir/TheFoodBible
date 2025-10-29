@@ -19,7 +19,7 @@ router.post("/:source", async (req, res) => {
       case "recipes":
         result = await runAllRecipeScraper();
         break;
-      case "frutis":
+      case "fruits":
         result = await runFruitScraper();
         break;
       case "vegetables":

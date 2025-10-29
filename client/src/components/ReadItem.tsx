@@ -199,7 +199,10 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
   return (
     <div id='readitem' style={readDisplay}>
-        <button onClick={() => {setReadDisplay({display: "none"});onClose()}}>❌ BACK</button>
+        <button className='smallbtn' onClick={() => {setReadDisplay({display: "none"});onClose()}}>❌</button>
+        <button onClick={() => testRecipeValues()}>test</button>
+        {role === "admin" ? <button className='btn' onClick={() => handleEdit()}>CHANGE</button> : null}
+        {role === "admin" ? <button className='btn' onClick={() => handleDelete(itemId)}>DELETE</button> : null}
         {isEditClicked  ? ( isFoodItem(item) ?  <EditFoodItem onSave={
             (updatedItem) => {
                 onUpdate(updatedItem)
@@ -240,12 +243,12 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
             // item is type of recipe
             <div>
                 <h2>{item.name}</h2>
-                {item.instructions}
-                Cooktime: {item.cookTime}
-                Type of recipe: {item.diet}
-                Url for recipe: <a href={item.url} target='_blank' rel="noreferrer noopener">{item.url}</a>
+                <div style={{overflowY:"scroll",height: "200px"}}>{item.instructions}</div>
+                <div>Cooktime: {item.cookTime}</div>
+                <div>Type of recipe: {item.diet}</div>
+                <div>Url for recipe: <a href={item.url} target='_blank' rel="noreferrer noopener">{item.url}</a></div>
                 {/* ingredients in recipes */}
-                <div>
+                <div className='youritems'>
                     {recipeItems.length > 0 && recipeItems.map((recipeItem,i) => (
                         <ItemDisplay key={i+"i"} itemToDisplay={recipeItem} onToggle={() => onSelectItem(recipeItem._id)}/>))}
                     {unmatchedItems.length > 0 && unmatchedItems.map((item,i) => (
@@ -253,9 +256,6 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
                     ))}
                 </div>
             </div>}
-            <button onClick={() => testRecipeValues()}>click</button>
-            {role === "admin" ? <button onClick={() => handleEdit()}>CHANGE</button> : null}
-            {role === "admin" ? <button onClick={() => handleDelete(itemId)}>DELETE</button> : null}
         </div>)}
     </div>
   )

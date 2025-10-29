@@ -2,33 +2,36 @@ import React, { useState } from 'react'
 
 interface ScrapeProps{
     sourceName: string;
+    cooldown: number;
+    onScraperRun: () => void;
 }
 
-const ScraperButton = ({sourceName} : ScrapeProps) => {
+const ScraperButton = ({sourceName,cooldown,onScraperRun} : ScrapeProps) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
     function canRunScraper(source: string) {
-        const lastRun = localStorage.getItem(`scraper_${source}_lastRun`);
+        const lastRun = localStorage.getItem(`scraperLastRun`);
         if (!lastRun) return true;
         const diff = Date.now() - parseInt(lastRun, 10);
-        return diff > 60 * 60 * 1000; // 1 hour
+        return diff > 60 * 60 * 1000; 
     }
 
 
     async function runScraper(source : string){
         setLoading(true);
         if (!canRunScraper(source)) {
-            setMessage(`⏳ You can run ${source} again in 1 hour.`);
+            setMessage(`⏳ You can run scrapers again in ${Math.ceil(cooldown / 1000 / 60)} min.`);
             return;
         }
         try{
             const res = await fetch(`/api/scrape/${source}`, { method: "POST",headers: {
-    "Content-Type": "application/json"},});
+    "Content-Type": "application/json"},}); 
             const data = await res.json();
             if (data.ok) {
-            localStorage.setItem(`scraper_${source}_lastRun`, Date.now().toString());
-            setMessage(`✅ ${source} started successfully`);
+                onScraperRun();
+                localStorage.setItem(`scraperLastRun`, Date.now().toString());
+                setMessage(`✅ ${source} started successfully`);
             } else {
             setMessage(`❌ ${data.error}`);
             }
@@ -41,9 +44,9 @@ const ScraperButton = ({sourceName} : ScrapeProps) => {
 
   return (
     <div>
-        <button onClick={() => runScraper(sourceName)}>{sourceName}</button>
+        <button className='btn' onClick={() => runScraper(sourceName)} disabled={loading || cooldown > 0}>{sourceName}</button>
         <p>{loading ? "loading data from scraper" : null}</p>
-        <p>{message}</p>
+        <p>{cooldown > 0 && !loading ? `You can run scrapers again in ${Math.ceil(cooldown / 1000 / 60)} minutes` : message}</p>
     </div>
   )
 }

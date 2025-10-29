@@ -10,7 +10,7 @@ const PlanPage = () => {
     const {diets} = useSelector((state: RootState) => state.diet);
 
   return (
-    <div className='pagewrap'>
+    <div id='planpage'>
         <h2>Choose your diet plan:</h2>
         <div>
             {diets.length < 1 ? <p>Loading..</p> : diets.map((diet) => (
@@ -18,7 +18,7 @@ const PlanPage = () => {
                     <h3>{diet.planName}</h3>
                     <p>GOAL: {diet.goal}</p>
                     <p>TIME: {diet.duration} days</p>
-                    <button>Start !</button>
+                    <button className='btn'>Start !</button>
                 </div>
             ))}
         </div>

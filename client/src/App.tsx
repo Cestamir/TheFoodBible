@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import './App.css'
+import './styles/App.css'
 import LandingPage from './pages/LandingPage'
 import UnauthorizedPage from './pages/UnauthorizedPage'
 import AdminPage from './pages/AdminPage'
@@ -15,6 +15,9 @@ import LoginPage from './pages/LoginPage'
 import { isExpiredToken } from './utils/types'
 import AccountPage from './pages/AccountPage'
 import { logout } from './reduxstore/authSlice'
+import ProtectedRoute from './utils/ProtectedRoute'
+import { addFood,addRecipe } from './reduxstore/itemsSlice'
+
 //bmi calculator componet to add
 
 
@@ -56,20 +59,55 @@ function App() {
     }
   },[])
 
+  useEffect(() => {
+    const eventSource = new EventSource("/api/items/stream");
+    eventSource.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+        switch (data.type) {
+        case "food":
+          dispatch(addFood(data.payload));
+          break;
+        case "recipe":
+          dispatch(addRecipe(data.payload));
+          break;
+        default:
+          console.warn("Unknown SSE type", data);
+        }
+    }
+    eventSource.onerror = (err) => {
+      console.error("SSE error", err);
+      eventSource.close();
+    };
+
+    return () => eventSource.close();
+  },[dispatch])
+
   return (
     <>
     <BrowserRouter>
     <Navbar/>
     <div className='pagewraper'>
       <Routes>
-        <Route path='/account' element={<AccountPage/>}/>
+        <Route path='/admin' element={
+        <ProtectedRoute allowedRoutes={["admin"]}>
+          <AdminPage/>
+        </ProtectedRoute>
+        }/>
+        <Route path='/account' element={
+        <ProtectedRoute allowedRoutes={["admin","user"]}>
+          <AccountPage/>
+        </ProtectedRoute>
+        }/>
+        <Route path='/diet' element={
+        <ProtectedRoute allowedRoutes={["admin","user"]}>
+          <PlanPage/>
+        </ProtectedRoute>
+        }/>
         <Route path='/login' element={<LoginPage/>}/>
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/home' element={<HomePage/>}/>
         <Route path='/unauthorized' element={<UnauthorizedPage/>}/>
-        <Route path='/admin' element={<AdminPage/>}/>
         <Route path='/contact' element={<ContactPage/>}/>
-        <Route path='/diet' element={<PlanPage/>}/>
       </Routes>
     </div>
     </BrowserRouter>

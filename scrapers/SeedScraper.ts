@@ -4,7 +4,8 @@ import path from "path"
 import dotenv from "dotenv"
 import pLimit from "p-limit"  
 import { fileURLToPath } from "url";
-import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.js"
+import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.ts"
+import { broadcastUpdate } from "../server/src/sse.ts"
 
 // env setup
 const __filename = fileURLToPath(import.meta.url);
@@ -384,7 +385,6 @@ async function buildSeed(meta: WikiSeedMeta): Promise<Seed>{
         if (results.length === 0) return record;
 
         const best = results[0];
-        console.log(best)
         const detail = await getUsdaFoodDetail(best.fdcId);
 
         record.fdcId = best.fdcId;
@@ -461,6 +461,7 @@ export async function runSeedScraper(){
 
     console.log(`Processed ${records.length} seed records.`);
     await saveToMongo(records);
+    broadcastUpdate({type: "food",payload: records});
 }
 
 // main().catch((err) => {

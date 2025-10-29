@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import ControlPanel from '../ControlPanel'
+import ControlPanel from '../utils/ControlPanel'
 import { Link, useNavigate } from 'react-router-dom'
 import { type User,type Diet, isExpiredToken } from '../utils/types'
 import { useDispatch, useSelector } from 'react-redux'
@@ -14,6 +14,31 @@ const AdminPage = () => {
   // populate db
 
   const [populateBtn,setPopulateBtn] = useState<boolean>(false);
+  const [globalCooldown,setGlobalCooldown] = useState<number>(0);
+
+  const updateCooldown = () => {
+    const lastRun = localStorage.getItem("scraperLastRun");
+
+    if(!lastRun){
+      setGlobalCooldown(0);
+      return;
+    }
+    const diff = Date.now() - parseInt(lastRun,10);
+    const remaining = Math.max(0,60 * 60 * 1000 - diff);
+    setGlobalCooldown(remaining);
+  }
+
+  useEffect(() => {
+    updateCooldown()
+    const interval = setInterval(updateCooldown,1000);  
+    return clearInterval(interval); 
+  },[]);
+
+  const handleScraperLastRun = () => {
+    const now = Date.now()
+    localStorage.setItem("scraperLastRun", now.toString());
+    updateCooldown();
+  }
 
     // node server running test
     const [message,setMessage] = useState<string>("");
@@ -210,85 +235,123 @@ const AdminPage = () => {
     }
   }
 
-  if(token && isExpiredToken(token)){
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    alert("login again.")
-    navigate("/login")
-  }
+  // check for admin
+  useEffect(() => {
+    const checkToken = () => {
+      const token = localStorage.getItem("token");
+      if (!token || isExpiredToken(token)) {
+        alert("Session expired or invalid. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        navigate("/login");
+      }
+    };
+
+    checkToken();
+    const interval = setInterval(checkToken, 10000); 
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   return (
     <div id='adminpage'>
-      <h2>AdminPage</h2>
+      <h1>AdminPage</h1>
+      <div id='controls'>
         <ControlPanel nodeServerRunning={message}/>
-        <button onClick={() => setPopulateBtn(prev => !prev)}>Populate the db with food & recipes</button>
-        <button onClick={() => {manageUsers();setUserPanelClicked(prev => !prev);setUpdateBtn(false);setCreateBtn(false)}}>Manage users</button>
-        <button onClick={() => setDietBtn(prev => !prev)}>Create new diet plan</button>
-        // populate db
-        {populateBtn ? <div>
-          <ScraperButton sourceName='fruits'/>
-          <ScraperButton sourceName='seeds'/>
-          <ScraperButton sourceName='recipes'/>
-          <ScraperButton sourceName='vegetabbles'/>
-          <ScraperButton sourceName='herbs'/>
-          <ScraperButton sourceName='restItems'/>
-        </div> : null}
+        <button className='btn' onClick={() => {
+          setPopulateBtn(prev => !prev);
+          setUpdateBtn(false);
+          setDietBtn(false);
+          setUserPanelClicked(false);}}>Populate the db with food & recipes</button>
+
+        <button className='btn' onClick={() => {
+          manageUsers();
+          setUserPanelClicked(prev => !prev);
+          setUpdateBtn(false);
+          setCreateBtn(false);
+          setDietBtn(false);
+          setPopulateBtn(false);}
+          }>Manage users</button>
+
+        <button className='btn' onClick={() => {
+          setDietBtn(prev => !prev);
+          setUserPanelClicked(false);
+          setUpdateBtn(false);
+          setPopulateBtn(false);}}>Create new diet plan</button>
+      </div>
+        {/* populate db */}
+        {populateBtn && <div id='populatedb'>
+          <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='fruits'/>
+          <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='seeds'/>
+          <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='recipes'/> 
+          <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='vegetables'/>
+          <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='herbs'/>
+          <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='restItems'/>
+        </div>}
+
         {/* manage diet plans */}
-        {dietBtn && <form onSubmit={(e) => {e.preventDefault();handleDietSubmit()}}>
-          <label>Name</label>
+        {dietBtn && <div id='manageadmindiets'>
+          <form onSubmit={(e) => {e.preventDefault();handleDietSubmit()}}>
+          <label className='label'>Name: </label>
           <input value={newDiet.planName} onChange={(e) => setNewDiet((prev) => ({...prev,planName: e.target.value}))}/>
-          <label>Duration in days</label>
+          <label className='label'>Duration in days: </label>
           <input placeholder='40' min={0} value={newDiet.duration} onChange={(e) => setNewDiet((prev) => ({...prev,duration: Number(e.target.value)}))}/>
-          <label>Goal</label>
+          <label className='label'>Goal: </label>
           <input value={newDiet.goal} onChange={(e) => setNewDiet((prev) => ({...prev,goal: e.target.value}))}/>
-          {updateDietBtn ? <button type='submit'>Update</button> : <button type='submit'>Add plan</button>}
-          </form>}
-          {dietBtn && diets && diets.map((diet,i) => (
-            <div key={i}>
-              <button onClick={() => {setUpdateDietBtn(prev => !prev);updateDietPlan(diet._id!)}}>Update</button>
-              <button onClick={() => deleteDietPlan(diet._id!)}>❌</button>
+          {updateDietBtn ? <button type='submit'>Update</button> : <button className='btn' type='submit'>Add plan</button>}
+          </form></div>}
+          {dietBtn && diets && <div id='admindiets'>{ diets.map((diet,i) => (
+            <div id='admindiet' key={i}>
+              <button className='smallbtn' onClick={() => {setUpdateDietBtn(prev => !prev);updateDietPlan(diet._id!)}}>Update</button>
+              <button className='smallbtn' onClick={() => deleteDietPlan(diet._id!)}>❌</button>
               <h3>{diet.planName}</h3>
               <h4>{diet.duration} days</h4>
               <p>{diet.goal}</p>
             </div>
-          ))}
+          ))}</div>}
+
         {/* create */}
-        {createBtn && <form onSubmit={(e) => {e.preventDefault(); handleCreateUser()}}>
-          <label>Name:</label>
+        {createBtn && <div className='adminform'>
+          <form onSubmit={(e) => {e.preventDefault(); handleCreateUser()}}>
+          <label className='label'>Name:</label>
           <input value={newUser.userName} onChange={(e) => setNewUser(prev => ({...prev,userName:  e.target.value}))} id='newusername'/>
-          <label>Pass:</label>
+          <label className='label'>Pass:</label>
           <input value={newUser.password} onChange={(e) => setNewUser(prev => ({...prev,password:  e.target.value}))} id='newuserpassword'/>
-          <label>Role:</label>
+          <label className='label'>Role:</label>
           <input value={newUser.role} onChange={(e) => setNewUser(prev => ({...prev,role:  e.target.value}))} id='newuserrole'/>
-          <label>Mail:</label>
+          <label className='label'>Mail:</label>
           <input value={newUser.userEmail} onChange={(e) => setNewUser(prev => ({...prev,userEmail:  e.target.value}))} id='newusermail'/>
-          <button type='submit'>Create</button>
-          </form>}
+          <button className='smallbtn' type='submit'>Create</button>
+          <button className='smallbtn' onClick={() => setCreateBtn(false)}>Cancel❌</button>
+          </form></div>}
+
           {/* update */}
-          {!createBtn && updateBtn && <form onSubmit={(e) => {e.preventDefault(); handleUpdateUser(newUser._id!)}}>
-          <label>Name:</label>
+          {!createBtn && updateBtn && <div className='adminform'>
+          <form onSubmit={(e) => {e.preventDefault(); handleUpdateUser(newUser._id!)}}>
+          <label className='label'>Name:</label>
           <input value={newUser.userName} onChange={(e) => setNewUser(prev => ({...prev,userName:  e.target.value}))} id='newusername'/>
-          <label>Pass:</label>
+          <label className='label'>Pass:</label>
           <input placeholder='Leave empty to keep same password' value={newUser.password} onChange={(e) => setNewUser(prev => ({...prev,password:  e.target.value}))} id='newuserpassword'/>
-          <label>Role:</label>
+          <label className='label'>Role:</label>
           <input value={newUser.role} onChange={(e) => setNewUser(prev => ({...prev,role:  e.target.value}))} id='newuserrole'/>
-          <label>Mail:</label>
+          <label className='label'>Mail:</label>
           <input value={newUser.userEmail} onChange={(e) => setNewUser(prev => ({...prev,userEmail:  e.target.value}))} id='newusermail'/>
-          <button type='submit'>Update</button>
-          </form>}
+          <button className='smallbtn' type='submit'>Update</button>
+          <button className='smallbtn' onClick={() => setUpdateBtn(false)}>Cancel❌</button>
+          </form></div>}
+
           {/* user list */}
-        {userPanelClicked && <div>
-          <button onClick={() => setCreateBtn(prev => !prev)}>CREATE NEW USER</button>
+        {userPanelClicked && <div id='userspanel'>
+          <button className='smallbtn' onClick={() => setCreateBtn(prev => !prev)}>CREATE NEW USER</button>
           {users ? users.map((user) => (
-            <div key={user._id} style={{margin: "20px auto"}}>
+            <div id='newuser' key={user._id}>
               <h2>{user._id}</h2>
               <h2>{user.role}</h2>
               <h2>{user.userEmail}</h2>
               {user.userName === localStorage.getItem("user") ? <h2 style={{color: "red"}}>{`CURRENT ACC ${user.userName}`}</h2>: <h2>{user.userName}</h2>}
               <h2>{user.password}</h2>
               <h3>Items on acc: {user.foodItems?.length}</h3>
-              <button onClick={() => handleDeleteUser(user._id!)}>DELETE USER</button>
-              <button onClick={() => {setUpdateBtn(prev => !prev);loadUserToUpdate(user)}}>UPDATE USER</button>
+              <button className='smallbtn' onClick={() => handleDeleteUser(user._id!)}>DELETE USER</button>
+              <button className='smallbtn' onClick={() => {setUpdateBtn(prev => !prev);loadUserToUpdate(user)}}>UPDATE USER</button>
             </div>
           )) : <p>No data.</p>}
           </div>}

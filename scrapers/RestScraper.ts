@@ -2,9 +2,10 @@ import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
 import path from "path";
+import { broadcastUpdate } from "../server/src/sse.ts";
 
 import { fileURLToPath } from "url";
-import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.js"
+import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.ts"
 
 // env setup
 
@@ -229,6 +230,7 @@ export async function runRestItemsScraper() {
 
   console.log(`Processed ${records.length} records.`);
   await saveToMongo(records);
+  broadcastUpdate({type: "food",payload: records});
 }
 // main().catch((err) => {
 //     console.error("Error",err);
