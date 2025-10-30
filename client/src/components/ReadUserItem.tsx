@@ -1,4 +1,3 @@
-import React from 'react'
 import type { Item } from '../utils/types'
 import { isRecipeItem } from '../utils/types'
 
@@ -13,6 +12,7 @@ const ReadUserItem = ({foodItem,onClose}: ReadUserItemProps) => {
 
   return (
     <>
+    {/* display detail of an item in user account */}
     {isRecipeItem(item) ? 
     <div className='accdetail'>
         <button className='smallbtn' onClick={() => onClose()}>❌</button>

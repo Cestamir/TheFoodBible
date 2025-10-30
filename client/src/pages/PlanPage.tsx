@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link } from 'react-router-dom'
 import type { RootState } from '../reduxstore/store';
 import { useSelector } from 'react-redux';
@@ -6,12 +5,13 @@ import { useSelector } from 'react-redux';
 
 const PlanPage = () => {
 
-
+    // redux
     const {diets} = useSelector((state: RootState) => state.diet);
 
   return (
     <div id='planpage'>
-        <h2>Choose your diet plan:</h2>
+        <h2>Choose your fitness plan:</h2>
+        <p>Start your journey to improve overall health of your mind and body today. 🧠 💪</p>
         <div>
             {diets.length < 1 ? <p>Loading..</p> : diets.map((diet) => (
                 <div key={diet.planName}>

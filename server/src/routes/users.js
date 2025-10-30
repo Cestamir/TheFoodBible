@@ -133,9 +133,7 @@ router.delete("/me/foods/:foodId",authenticate, async (req,res) => {
         }
 
         await user.save();
-
-        res.status(200).json({message: "Food added to user collection."});
-        
+        res.status(200).json({message: "Food added to user collection."});      
     } catch (error) {
         res.status(500).json({message: "Error deleting food from user collection.",error})
     }

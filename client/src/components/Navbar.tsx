@@ -13,19 +13,12 @@ const Navbar = () => {
   // styling options
   const [navStyle,setNavStyle] = useState({})
   const [hamburgerClicked,setHamburgerClicked] = useState<boolean>(false);
-  const [listStyle,setListStyle] = useState({display: "block"});
 
-    const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
+  const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
 
-    const token = localStorage.getItem("token");
-    const dispatch = useDispatch();
-    const navigate = useNavigate()
-
-    const showInfo = () => {
-      console.log(role,isAuthenticated,token)
-    }
-
-
+  const token = localStorage.getItem("token");
+  const dispatch = useDispatch();
+  const navigate = useNavigate()
 
   return (
     <nav>
@@ -35,7 +28,8 @@ const Navbar = () => {
           setNavStyle({display: "block"})
         } else {
           setNavStyle({display: "none"})
-        } }}>{!hamburgerClicked ? "❌" : "💾"}</button>
+        } }}>{!hamburgerClicked ? "❌" : "🟰"}</button>
+
       <ul id='navlist' style={navStyle}>
         {isAuthenticated && token ? <li><button className='smallbtn' onClick={()=> {
           localStorage.removeItem('token');
@@ -44,6 +38,8 @@ const Navbar = () => {
           dispatch(logout());
           navigate("/login");
           }}>logout</button></li> : null}
+          
+        {/* display only items based on your role */}
         {isAuthenticated && role === 'admin' ? (<li><Link className='navlink' to={"/admin"}>Admin</Link></li>) : null }
         {role === "admin" || role === "user" ? <li><Link className='navlink' to={"/diet"}>Diet Plans</Link></li> : null}
         {role === "admin" || role === "user" ? <li><Link className='navlink' to={"/account"}>Account</Link></li> : null}
@@ -52,7 +48,6 @@ const Navbar = () => {
         <li><Link className='navlink' to={"/contact"}>Get in touch</Link></li>
         <li><Link className='navlink' to={"/login"}>Login/Register</Link></li>
       </ul>
-        {/* <button onClick={() => showInfo()}>INFO</button> */}
     </nav>
   )
 }

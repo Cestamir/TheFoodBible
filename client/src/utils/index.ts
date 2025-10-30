@@ -1,3 +1,4 @@
+// storing file for general functions
 
 export interface newFoodFace {
     title: string,
@@ -5,14 +6,12 @@ export interface newFoodFace {
     author: string
 }
 
-export interface newRecipeFace {
-    title: string,
-    instructions: string,
-    ingredients: string[],
-    author: string
-}
-
-
+// export interface newRecipeFace {
+//     title: string,
+//     instructions: string,
+//     ingredients: string[],
+//     author: string
+// }
 
 export const foodList  = [
   { id: 1, name: "cucumber", type: "vegetables" },

@@ -9,6 +9,7 @@ const ContactPage = () => {
 
   return (
     <div className='pagewraper'>
+      <h2>Hello this webapp was made by Cestmir Pavlasek, here you can find contact information to get in touch.</h2>
       <div id='contactinfo'>
         <h2>Linkedin: </h2>
         <a href='https://www.linkedin.com/in/cestmir-pavlasek-4bb741382/'>https://www.linkedin.com/in/cestmir-pavlasek-4bb741382/</a>

@@ -3,16 +3,17 @@ import dotenv from "dotenv"
 import pLimit from "p-limit"
 import path from "path";
 import * as cheerio from "cheerio";
+
 import { broadcastUpdate } from "../server/src/sse.ts";
 
 import { fileURLToPath } from "url";
 import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.ts"
 
 // env setup
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
+// urls
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
 
@@ -32,36 +33,6 @@ type Herb = {
     author: string;
     createdAt: Date;
 }
-
-// async function getHerbTitlesFromWikiPageList(): Promise<string[]>{
-//     const url = new URL(WIKI_API);
-//     url.searchParams.set("action","parse")
-//     url.searchParams.set("page", "List_of_culinary_herbs_and_spices");
-//     url.searchParams.set("prop", "links");
-//     url.searchParams.set("format", "json");
-//     url.searchParams.set("origin", "*");
-
-//     console.log(url)
-
-//     const data = await fetchJson<any>(url.toString());
-
-//     const links = data.parse?.links || [];
-//     console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
-
-//     const titles = links
-//         .map((l: any) => l["*"])
-//         .filter((title: string) => {
-//         if (!title) return false;
-//         if (title.includes(":")) return false;
-//         if (title.startsWith("List of")) return false;
-//         // if (title.length > 60) return false;
-//         return true;
-//         });
-
-//     console.log("After filter:", titles.slice(0, 50))
-
-//     return Array.from(new Set(titles))
-// }
 
 export async function getHerbsTitlesFromWiki(): Promise<string[]> {
   const url = "https://en.wikipedia.org/wiki/List_of_culinary_herbs_and_spices";
@@ -116,7 +87,6 @@ function extractHerbName($li: cheerio.Cheerio<any>,$: cheerio.CheerioAPI): strin
     if (n.type === "text") {
       const txt = (n.data || "").trim();
       if (!txt) continue;
-      // Stop at ",", "/", "(", "—"
       const name = txt.split(/[,/()—]/)[0]!.trim();
       if (name) return name;
     }
@@ -245,6 +215,40 @@ export async function runHerbsScraper(){
     await saveToMongo(records);
     broadcastUpdate({type: "food",payload: records});
 }
+
+
+// MANUAL FUNCS
+
+
+// async function getHerbTitlesFromWikiPageList(): Promise<string[]>{
+//     const url = new URL(WIKI_API);
+//     url.searchParams.set("action","parse")
+//     url.searchParams.set("page", "List_of_culinary_herbs_and_spices");
+//     url.searchParams.set("prop", "links");
+//     url.searchParams.set("format", "json");
+//     url.searchParams.set("origin", "*");
+
+//     console.log(url)
+
+//     const data = await fetchJson<any>(url.toString());
+
+//     const links = data.parse?.links || [];
+//     console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
+
+//     const titles = links
+//         .map((l: any) => l["*"])
+//         .filter((title: string) => {
+//         if (!title) return false;
+//         if (title.includes(":")) return false;
+//         if (title.startsWith("List of")) return false;
+//         // if (title.length > 60) return false;
+//         return true;
+//         });
+
+//     console.log("After filter:", titles.slice(0, 50))
+
+//     return Array.from(new Set(titles))
+// }
 
 // main().catch((err) => {
 //     console.error("Error",err);

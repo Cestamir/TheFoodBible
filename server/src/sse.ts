@@ -1,5 +1,7 @@
 import type { Response } from 'express';
 
+// broadcast updates to db 
+
 let clients: Response[] = [];
 
 export function registerClient(res: Response) {

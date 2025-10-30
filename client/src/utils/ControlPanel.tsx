@@ -1,4 +1,4 @@
-import React from 'react'
+// testing component fro backend
 
 interface controlPanelProps{
     nodeServerRunning: string;

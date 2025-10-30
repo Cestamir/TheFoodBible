@@ -18,12 +18,11 @@ import { logout } from './reduxstore/authSlice'
 import ProtectedRoute from './utils/ProtectedRoute'
 import { addFood,addRecipe } from './reduxstore/itemsSlice'
 
-//bmi calculator componet to add
-
-
 function App() {
 
-    const dispatch = useDispatch();
+  // redux
+  const dispatch = useDispatch();
+  const {foods,recipes,loading} = useSelector((state : RootState) => state.items );
 
   const token = localStorage.getItem("token");
     if(token && isExpiredToken(token)){
@@ -33,8 +32,7 @@ function App() {
         dispatch(logout())
     }
 
-  const {foods,recipes,loading} = useSelector((state : RootState) => state.items );
-
+// live update foods and recipes
   useEffect(() => {
     if(foods.length === 0 && recipes.length === 0 && !loading){
       const loadData = async() => {
@@ -59,6 +57,7 @@ function App() {
     }
   },[])
 
+  // SSE fro scraper actions
   useEffect(() => {
     const eventSource = new EventSource("/api/items/stream");
     eventSource.onmessage = (e) => {

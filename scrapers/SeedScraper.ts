@@ -3,8 +3,10 @@ import {MongoClient} from "mongodb"
 import path from "path"
 import dotenv from "dotenv"
 import pLimit from "p-limit"  
+
 import { fileURLToPath } from "url";
 import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.ts"
+
 import { broadcastUpdate } from "../server/src/sse.ts"
 
 // env setup
@@ -13,7 +15,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
 
-// basic settings
+// urls
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
 
@@ -198,6 +200,125 @@ function cleanName(text?: string): string {
   return name;
 }
 
+async function getWikiMetadata(titles: string[]): Promise<WikiSeedMeta[]>{
+    const chunks = Array.from({length: Math.ceil(titles.length/ 40)}, (_,i) => titles.slice(i * 40,i * 40 + 40));
+
+    const results : WikiSeedMeta[] = [];
+
+    for (const chunk of chunks){
+        const url = new URL(WIKI_API);
+        url.searchParams.set("action", "query");
+        url.searchParams.set("format", "json");
+        url.searchParams.set("origin", "*");
+        url.searchParams.set("prop", "pageimages|info");
+        url.searchParams.set("piprop", "thumbnail");
+        url.searchParams.set("pithumbsize", "500");
+        url.searchParams.set("inprop", "url");
+        url.searchParams.set("titles", chunk.join("|"));
+
+        const data = await fetchJson<any>(url.toString());
+        const pages = data.query?.pages || {};
+
+        for (const pid in pages){
+            const p = pages[pid];
+            if (p.missing) continue;
+            results.push({
+                title: p.title,
+                fullurl: p.fullurl,
+                thumbnailUrl: p.thumbnail?.source
+            })
+        }
+    }
+    return results;
+}
+
+async function buildSeed(meta: WikiSeedMeta): Promise<Seed>{
+    const record: Seed = {
+        name: meta.title,
+        foodType: "seed",
+        wikiUrl: meta.fullurl,
+        imageUrl: meta.thumbnailUrl || meta.fallBackImageUrl,
+        author: "admin",
+        createdAt: new Date(),
+    }
+
+    try{
+        const results = await searchUsdaByName(meta.title);
+        if (results.length === 0) return record;
+
+        const best = results[0];
+        const detail = await getUsdaFoodDetail(best.fdcId);
+
+        record.fdcId = best.fdcId;
+        record.nutrition = [];
+
+        for(const nutrient of detail.foodNutrients || []){
+            if(nutrient.amount != null && nutrient.nutrient?.name && nutrient.nutrient.unitName){
+                record.nutrition.push({
+                    name: nutrient.nutrient.name,
+                    value: nutrient.amount,
+                    unit: nutrient.nutrient.unitName,
+                })
+            }
+        }
+    } catch(err){
+        console.warn(`USDA error for ${meta.title}: ${(err as Error).message}`);
+    }
+
+    return record;
+}
+
+async function saveToMongo(records: Seed[]){
+ const client = new MongoClient(MONGO_URI);
+  await client.connect();
+  const db = client.db("myFoodDb");
+  const coll = db.collection<Seed>("foods");
+
+  const ops = records.map(rec => ({
+    updateOne: {
+        filter: {name: rec.name},
+        update: {$set: rec},
+        upsert: true,
+    }
+  }))
+
+  if(ops.length){
+    await coll.bulkWrite(ops);
+    console.log(`Saved ${ops.length} seeds to MongoDB.`);
+  }
+
+  await client.close();
+}
+
+
+export async function runSeedScraper(){
+
+    const allSeeds = await getSeedTitlesFromWiki();
+    const titles : string[] = allSeeds.map((s) => s.name)
+
+    const wikiMeta = await getWikiMetadata(titles);
+
+    const wikiMetaWithFallback : WikiSeedMeta[] = wikiMeta.map(meta => {
+        const match = allSeeds.find(s => s.name === meta.title)
+        return {
+            ...meta,
+            fallBackImageUrl: match?.imageUrl,
+        }
+    })
+
+    const limit = pLimit(5);
+    const records = await Promise.all(
+        wikiMetaWithFallback.map(m => limit(() => buildSeed(m)))
+    )
+
+    console.log(`Processed ${records.length} seed records.`);
+    await saveToMongo(records);
+    broadcastUpdate({type: "food",payload: records});
+}
+
+
+// DIFFRENT APROACH FOR SCRAPING SEEDS (Complicated html layout)
+
 
 // async function getSeedTitlesFromWiki(): Promise<WikiTableSeed[]> {
 //   const url = "https://en.wikipedia.org/wiki/List_of_edible_seeds";
@@ -337,132 +458,6 @@ function cleanName(text?: string): string {
 //     return Array.from(new Set(titles))
 // }
 
-
-async function getWikiMetadata(titles: string[]): Promise<WikiSeedMeta[]>{
-    const chunks = Array.from({length: Math.ceil(titles.length/ 40)}, (_,i) => titles.slice(i * 40,i * 40 + 40));
-
-    const results : WikiSeedMeta[] = [];
-
-    for (const chunk of chunks){
-        const url = new URL(WIKI_API);
-        url.searchParams.set("action", "query");
-        url.searchParams.set("format", "json");
-        url.searchParams.set("origin", "*");
-        url.searchParams.set("prop", "pageimages|info");
-        url.searchParams.set("piprop", "thumbnail");
-        url.searchParams.set("pithumbsize", "500");
-        url.searchParams.set("inprop", "url");
-        url.searchParams.set("titles", chunk.join("|"));
-
-        const data = await fetchJson<any>(url.toString());
-        const pages = data.query?.pages || {};
-
-        for (const pid in pages){
-            const p = pages[pid];
-            if (p.missing) continue;
-            results.push({
-                title: p.title,
-                fullurl: p.fullurl,
-                thumbnailUrl: p.thumbnail?.source
-            })
-        }
-    }
-    return results;
-}
-
-async function buildSeed(meta: WikiSeedMeta): Promise<Seed>{
-    const record: Seed = {
-        name: meta.title,
-        foodType: "seed",
-        wikiUrl: meta.fullurl,
-        imageUrl: meta.thumbnailUrl || meta.fallBackImageUrl,
-        author: "admin",
-        createdAt: new Date(),
-    }
-
-    try{
-        const results = await searchUsdaByName(meta.title);
-        if (results.length === 0) return record;
-
-        const best = results[0];
-        const detail = await getUsdaFoodDetail(best.fdcId);
-
-        record.fdcId = best.fdcId;
-        record.nutrition = [];
-
-        for(const nutrient of detail.foodNutrients || []){
-            if(nutrient.amount != null && nutrient.nutrient?.name && nutrient.nutrient.unitName){
-                record.nutrition.push({
-                    name: nutrient.nutrient.name,
-                    value: nutrient.amount,
-                    unit: nutrient.nutrient.unitName,
-                })
-            }
-        }
-    } catch(err){
-        console.warn(`USDA error for ${meta.title}: ${(err as Error).message}`);
-    }
-
-    return record;
-}
-
-async function saveToMongo(records: Seed[]){
- const client = new MongoClient(MONGO_URI);
-  await client.connect();
-  const db = client.db("myFoodDb");
-  const coll = db.collection<Seed>("foods");
-
-  const ops = records.map(rec => ({
-    updateOne: {
-        filter: {name: rec.name},
-        update: {$set: rec},
-        upsert: true,
-    }
-  }))
-
-  if(ops.length){
-    await coll.bulkWrite(ops);
-    console.log(`Saved ${ops.length} seeds to MongoDB.`);
-  }
-
-  await client.close();
-}
-
-
-export async function runSeedScraper(){
-    // console.log("getting foods from wiki..")
-    // const linkedTitles =  await getSeedTitlesFromWikiPageList();
-    // const tableSeeds = await getSeedTitlesFromWikiTables();
-    // console.log(`found ${tableSeeds.length} seeds from tables.`)
-    // console.log(`Found ${linkedTitles.length} seed titles.`);
-
-    // const allTitles = Array.from(new Set([
-    //     ...tableSeeds.map(s => s.name),
-    //     ...linkedTitles
-    // ]))
-
-    const allSeeds = await getSeedTitlesFromWiki();
-    const titles : string[] = allSeeds.map((s) => s.name)
-
-    const wikiMeta = await getWikiMetadata(titles);
-
-    const wikiMetaWithFallback : WikiSeedMeta[] = wikiMeta.map(meta => {
-        const match = allSeeds.find(s => s.name === meta.title)
-        return {
-            ...meta,
-            fallBackImageUrl: match?.imageUrl,
-        }
-    })
-
-    const limit = pLimit(5);
-    const records = await Promise.all(
-        wikiMetaWithFallback.map(m => limit(() => buildSeed(m)))
-    )
-
-    console.log(`Processed ${records.length} seed records.`);
-    await saveToMongo(records);
-    broadcastUpdate({type: "food",payload: records});
-}
 
 // main().catch((err) => {
 //     console.error("Error",err);

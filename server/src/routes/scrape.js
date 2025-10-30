@@ -3,6 +3,8 @@ dotenv.config({path: '../.env'})
 import express from "express";
 const router = express.Router();
 
+// handle scrapers
+
 import { runAllRecipeScraper } from "../../../scrapers/AllScraper.ts";
 import { runFruitScraper } from "../../../scrapers/FruitScraper.ts";
 import { runHerbsScraper } from "../../../scrapers/HerbsScraper.ts";

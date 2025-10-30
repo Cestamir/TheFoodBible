@@ -10,10 +10,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
 
+// db setup
 const uri = process.env.MONGO_URI!;
 const DB_NAME = "myFoodDb";
 const COLLECTION_NAME = "recipes";
 
+// keywords for query
 const keywords = [
   "chicken",
   "beef",
@@ -66,70 +68,6 @@ interface Recipe {
   author: string;
   createdAt: Date;
 }
-
-// async function fetchRecipes(keyword: string): Promise<MealDBRecipe[]> {
-//   const res = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${keyword}`);
-//   const data = await res.json();
-//   return data.meals || [];
-// }
-
-// function mapToRecipe(meal: MealDBRecipe): Recipe {
-//   const ingredients: string[] = [];
-
-//   for (let i = 1; i <= 20; i++) {
-//     const name = meal[`strIngredient${i}`];
-//     if (name && name.trim() !== "") ingredients.push(name.trim());
-//   }
-
-//   return {
-//     type: "recipe",
-//     diet: ["all food"],
-//     name: meal.strMeal,
-//     instructions: meal.strInstructions || "",
-//     ingredients,
-//     url: meal.strSource || `https://www.themealdb.com/meal/${meal.idMeal}`,
-//     imageUrl: meal.strMealThumb || "",
-//     cookTime: "30 minutes",
-//     author: "admin",
-//     createdAt: new Date()
-//   };
-// }
-
-// async function main() {
-//   const client = new MongoClient(uri);
-//   await client.connect();
-//   const db = client.db(DB_NAME);
-//   const collection = db.collection<Recipe>(COLLECTION_NAME);
-
-//   const allRecipes: Recipe[] = [];
-
-//   for (const keyword of keywords) {
-//     console.log(`🔍 Fetching recipes for "${keyword}"...`);
-//     try {
-//       const meals = await fetchRecipes(keyword);
-//       const recipes = meals.map(mapToRecipe);
-//       allRecipes.push(...recipes);
-//     } catch (err) {
-//       console.error(`Error fetching "${keyword}":`, err);
-//     }
-//   }
-
-//   // Deduplicate by name
-//   const uniqueRecipes = Array.from(new Map(allRecipes.map(r => [r.name.toLowerCase(), r])).values());
-
-//   console.log(`🧹 ${uniqueRecipes.length} unique recipes ready to insert`);
-
-//   if (uniqueRecipes.length > 0) {
-//     // await collection.insertMany(uniqueRecipes);
-//     console.log(`✅ Inserted ${uniqueRecipes.length} recipes into MongoDB`);
-//   }
-
-//   await client.close();
-//   console.log("🎉 Done!");
-// }
-
-// main().catch(console.error);
-
 
 async function fetchRecipes(keyword: string): Promise<MealDBRecipe[]> {
   const res = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(keyword)}`);
@@ -207,6 +145,74 @@ export async function runAllRecipeScraper() {
   await client.close();
   console.log("🎉 Done!");
 }
+
+
+
+// MANUAL SCRAPER FUNCTIONS/OLD
+
+// async function fetchRecipes(keyword: string): Promise<MealDBRecipe[]> {
+//   const res = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${keyword}`);
+//   const data = await res.json();
+//   return data.meals || [];
+// }
+
+// function mapToRecipe(meal: MealDBRecipe): Recipe {
+//   const ingredients: string[] = [];
+
+//   for (let i = 1; i <= 20; i++) {
+//     const name = meal[`strIngredient${i}`];
+//     if (name && name.trim() !== "") ingredients.push(name.trim());
+//   }
+
+//   return {
+//     type: "recipe",
+//     diet: ["all food"],
+//     name: meal.strMeal,
+//     instructions: meal.strInstructions || "",
+//     ingredients,
+//     url: meal.strSource || `https://www.themealdb.com/meal/${meal.idMeal}`,
+//     imageUrl: meal.strMealThumb || "",
+//     cookTime: "30 minutes",
+//     author: "admin",
+//     createdAt: new Date()
+//   };
+// }
+
+// async function main() {
+//   const client = new MongoClient(uri);
+//   await client.connect();
+//   const db = client.db(DB_NAME);
+//   const collection = db.collection<Recipe>(COLLECTION_NAME);
+
+//   const allRecipes: Recipe[] = [];
+
+//   for (const keyword of keywords) {
+//     console.log(`🔍 Fetching recipes for "${keyword}"...`);
+//     try {
+//       const meals = await fetchRecipes(keyword);
+//       const recipes = meals.map(mapToRecipe);
+//       allRecipes.push(...recipes);
+//     } catch (err) {
+//       console.error(`Error fetching "${keyword}":`, err);
+//     }
+//   }
+
+//   // Deduplicate by name
+//   const uniqueRecipes = Array.from(new Map(allRecipes.map(r => [r.name.toLowerCase(), r])).values());
+
+//   console.log(`🧹 ${uniqueRecipes.length} unique recipes ready to insert`);
+
+//   if (uniqueRecipes.length > 0) {
+//     // await collection.insertMany(uniqueRecipes);
+//     console.log(`✅ Inserted ${uniqueRecipes.length} recipes into MongoDB`);
+//   }
+
+//   await client.close();
+//   console.log("🎉 Done!");
+// }
+
+// main().catch(console.error);
+
 
 // main().catch(err => {
 //   console.error("❌ Error:", err);

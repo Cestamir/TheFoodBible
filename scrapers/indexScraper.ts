@@ -1,3 +1,5 @@
+// GENERAL REUSABLE ITEMS
+
 const USDA_SEARCH = "https://api.nal.usda.gov/fdc/v1/foods/search";
 const USDA_DETAIL = (fdcId: number) => `https://api.nal.usda.gov/fdc/v1/food/${fdcId}`
 const USDA_API_KEY = process.env.USDA_API_KEY?.trim()!;

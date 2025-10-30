@@ -2,20 +2,21 @@ import {MongoClient} from "mongodb"
 import dotenv from "dotenv"
 import pLimit from "p-limit"
 import path from "path";
+
 import { broadcastUpdate } from "../server/src/sse.ts";
 
 import { fileURLToPath } from "url";
 import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.ts"
 
 // env setup
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
+// urls
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
 
-// categories
+// categories of food for query, foodtype, basic url
 export const foodCategories = {
   fish: {
     url: "https://en.wikipedia.org/wiki/List_of_fish",
@@ -232,6 +233,9 @@ export async function runRestItemsScraper() {
   await saveToMongo(records);
   broadcastUpdate({type: "food",payload: records});
 }
+
+
+
 // main().catch((err) => {
 //     console.error("Error",err);
 //     process.exit(1);

@@ -1,37 +1,33 @@
-import { useEffect, useState } from 'react'
+import {useState}  from 'react'
 import ReadItem from '../components/ReadItem';
 import AddRecipeItem from '../components/AddRecipeItem';
 import AddFoodItem from '../components/AddFoodItem';
 import ItemsDisplay from '../components/ItemsDisplay';
-import ControlPanel from '../utils/ControlPanel';
-import { isExpiredToken, isFoodItem, isRecipeItem, type Item } from '../utils/types';
+import { isFoodItem, isRecipeItem, type Item } from '../utils/types';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../reduxstore/store';
 import { addFood, addRecipe, deleteFood, deleteRecipe, updateFood, updateRecipe } from '../reduxstore/itemsSlice';
 
-
+// diet options
 type DietType = "" | "all" | "carnivorous" | "vegetarian" | "fruitarian";
 
 const HomePage = () => {
-
-    // Redux
+    // Redux 
     const dispatch = useDispatch();
     const {foods,recipes,loading} = useSelector((state: RootState) => state.items);
 
-    // diet plans
+    // basic settings
     const [dietPlan,setDietPlan] = useState<DietType>("all");
+    const itemsList = [...foods,...recipes];
 
     // input entered in search field
     const [searchedItem,setSearchedItem] = useState<string>("");
 
-    // default item list, maybe assigning a value twice with the conjoined avriable above ?
-    const itemsList = [...foods,...recipes];
-
-    // storing the value of new item and display of the inputs to add it
+    // add button events
     const [addItemClicked,setAddItemClicked] = useState<boolean>(false);
     const [addRecipeClicked,setAddRecipeClicked] = useState<boolean>(false);
 
-    // functions to update the data on page
+    // functions to update the data on page, via props
     const [selectedItemId,setSelectedItemId] = useState<string | null>(null);
 
     const updateItem = (updatedItem : Item) => {
@@ -82,14 +78,19 @@ const HomePage = () => {
         <div id='actions'>
             {/* add new item to list */}
             <button id='add-item' onClick={() => {setAddItemClicked((prev) => !prev)}}>Add new food +</button>
+
             {/* add new recipe item to the list */}
             <button id='add-recipe' onClick={() => {setAddRecipeClicked((prev) => !prev)}}>Add new recipe +</button>
         </div>
+
+        {/* search field */}
         <div id='search'>
             <label htmlFor='search-field'>Search for an item..</label>
             <input placeholder='Orange' id='search-field' value={searchedItem} onChange={handleOnchange}/>
             <button id='search-button' onClick={handleSearch}>Search</button>
         </div>
+
+        {/* diet options */}
         <div id='preference'>
             <h3>Select your preference:</h3>
             <select value={dietPlan} onChange={(e : any) => setDietPlan(e.target.value)} id='diets'>
@@ -101,10 +102,12 @@ const HomePage = () => {
             </select>
         </div>
     </div>
-        {/* Add recipe  */}
+
+        {/* Add new recipe/food components */}
         {addRecipeClicked && <AddRecipeItem onAdd={addItem} onClose={() => setAddRecipeClicked(false)}/>}
-        {/* Add food  */}
         {addItemClicked  && <AddFoodItem onAdd={addItem} onClose={() => setAddItemClicked(false)}/>}
+
+            {/* grid display of all items, detail of a selected item */}
     <div id='display'>
         {selectedItemId === null  ? 
 

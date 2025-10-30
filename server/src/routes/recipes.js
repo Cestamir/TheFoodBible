@@ -1,4 +1,3 @@
-
 import express from "express";
 const router = express.Router();
 import Recipe from "../models/Recipe.js";
@@ -25,8 +24,6 @@ router.get("/", async (req,res) => {
     }
 });
 
-// delete route for recipe 
-
 router.delete("/:id",authenticate,authorizeRoles("admin"), async (req,res) => {
     const {id} = req.params; 
     try{
@@ -41,8 +38,6 @@ router.delete("/:id",authenticate,authorizeRoles("admin"), async (req,res) => {
     }
 
 })
-
-// edit route for recipe
 
 router.put("/:id",authenticate,authorizeRoles("admin"),async (req,res) => {
     const {id} = req.params;

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../reduxstore/store';
 import {deleteUserItem, setError, setLoading, setUserItems } from '../reduxstore/userItemsSlice'
@@ -12,9 +12,9 @@ const AccountPage = () => {
 
     const [displayItem,setDisplayItem] = useState<Item | null>();
 
-    // const [availableRecipes,setAvailableRecipes] = useState<recipeFace[] | null>();
     const [recipesLoading,setRecipesLoading] = useState<boolean>(true);
 
+    // redux
     const {userItems,loading,error} = useSelector((state: RootState) => state.userItems);
     const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
     const {recipes}= useSelector((state: RootState) => state.items);
@@ -59,7 +59,6 @@ const AccountPage = () => {
     const isReady = !loading && !recipesLoading &&  userItems.length > 0 && recipes.length > 0;
 
     // remove item from user items
-
     const handleRemoveUserItem = async (id: string) => {
         try {
             const res = await fetch(`/api/users/me/foods/${id}`,{method: "DELETE",
@@ -84,7 +83,6 @@ const AccountPage = () => {
     }
 
     // use memo to reduce load time of available recipes
-
     const availableRecipes = useMemo(() => {
         if(!recipes.length || !userItems.length){
             setRecipesLoading(false)
@@ -111,27 +109,6 @@ const AccountPage = () => {
 
     }
 
-
-    // useEffect(() => {
-    // // currently showing recipes that have 2 similar ingredients
-    // const showRecipesToCook = async () => {
-    //     setRecipesLoading(true)
-    //     try {
-    //         const recipesWithAtLeastTwoMatches = recipes.filter((recipe) =>{
-    //             const matched = recipe.ingredients.filter((recipeIng) => userItems.some((userItemIng) => userItemIng.name.toLowerCase() === recipeIng.toLowerCase()))
-
-    //             return matched.length >= 2;
-    //         })
-    //         setAvailableRecipes(recipesWithAtLeastTwoMatches);
-    //     } catch (err) {
-    //         console.log(err);
-    //     } finally {
-    //         setRecipesLoading(false);
-    //     }
-    // }
-    // showRecipesToCook();
-    // },[recipes,userItems])
-
     if(loading) return <>loading food data..</>
   return (
     <div id='accpage'>
@@ -140,6 +117,7 @@ const AccountPage = () => {
             <p>{`Your foods: ${userItems.length}`}</p>
             <p>Your role: {role}</p>
         </div>
+        {/* loaded available recipes */}
         {!isReady ? (<h3>Loading available recipes..</h3>) : (<h3>{`Available recipes: ${availableRecipes?.length}`}</h3>)}
         {displayItem ? <ReadUserItem  onClose={() => setDisplayItem(null)} foodItem={displayItem} /> : null}
         <div id='accrecipes'>
@@ -150,6 +128,7 @@ const AccountPage = () => {
                 </div>
             ))}
         </div>
+        {/* user account items list */}
         <div className='youritems'>
         {userItems.length > 0 && userItems.map((userItem,i) => (
             <div className='youritem' key={i}>

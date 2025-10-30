@@ -21,34 +21,26 @@ interface ItemDetailProps {
 }
 const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDetailProps) => {
 
+    const [readDisplay,setReadDisplay] = useState({display: 'block'})
 
     const {isAuthenticated,role} = useSelector((state: RootState) => state.auth);
     const {userItems,loading,error} = useSelector((state: RootState) => state.userItems)
 
+    // strings and components of ingredients in recipe
     const [recipeItems,setRecipeItems] = useState<Item[]>([]);
     const [unmatchedItems,setUnmatchedItems] = useState<string[]>([]);
 
+    // display item
     const item : any = items.find((item) => item._id === itemId)
+    if(!item){
+        return (<div>Item not found.</div>)
+    }
 
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
-    // function saveUnmatchedIngredients(){
-    //     let unmatchedlist : any = [];
-    //     if(recipeItems && item && isRecipeItem(item)){
-    //         for(let i=0;i< item.ingredients.length;i++){
-    //             const itemIngredient = item.ingredients[i]
-
-    //             const match = recipeItems.find((recipe : any) => recipe.title === itemIngredient)
-    //             if(!match){
-    //                 unmatchedlist.push(itemIngredient)
-    //             }
-    //         }
-    //     }
-    //     return unmatchedlist;
-    // }
-
+    // find ingredients in recipe
     const findMatchingItems = (ingredientName: string) : Item | null => {
         const normalizedIngredient = ingredientName.toLowerCase().trim();
         const match = items.find((item) => {
@@ -84,11 +76,6 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
 
                 console.log('Matched items:', matchedItems);
                 console.log('Unmatched ingredients:', unmatched);
-
-                    // const filteredIngredients : Item[] = item.ingredients.map((ingredient) => showIngredientBasedOnName(ingredient)).filter((result) : result is Item[] => Array.isArray(result)).flat();
-                    // const otherItems = saveUnmatchedIngredients();
-                    // setUnmatchedItems(otherItems)
-                    // setRecipeItems(filteredIngredients);
             }
 
             }catch(err){
@@ -98,18 +85,10 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         loadRecipeFoods();
     },[item,items])
 
-
-    const [readDisplay,setReadDisplay] = useState({display: 'block'})
-
-
-    if(!item){
-        return (<div>Item not found.</div>)
-    }
-
-
     // handles modification of the item selected
     const [isEditClicked,setIsEditClicked] = useState<boolean>(false);
 
+    //  test recipe values
     function testRecipeValues(){
         console.log(item)
     }
@@ -149,32 +128,7 @@ const ReadItem = ({items,itemId,onClose,onDelete,onUpdate,onSelectItem} : ItemDe
         setIsEditClicked((prev) => !prev)
     }
 
-    // // functions for checking and displaying the ingredeints in recipes
-
-    // function checkForIngredient(ingredient : string,ingredientInDb : string){
-    //     if(ingredient.includes(ingredientInDb)){
-    //         return ingredientInDb;
-    //     }
-    // }
-
-    // function showIngredientBasedOnName(ingredientName: string){
-    //     const foodIngredients = items.filter((item) =>{
-    //         if(isRecipeItem(item)){
-    //             item.title === checkForIngredient(ingredientName,item.title)
-    //         } else if(isFoodItem(item)){
-    //             item.name === checkForIngredient(ingredientName,item.name)
-    //         }
-    //     })
-    //     if(foodIngredients){
-    //         return foodIngredients;
-    //     } else {
-    //         return;
-    //     }
-    // }
-
-
-    // add food item to user acc
-
+    // add food item to user account
     const handleAddFoodToAccount = async (itemToAdd : foodFace) => {
         try {
             const foodExists =  userItems.find((item : foodFace) => item._id === itemToAdd._id)

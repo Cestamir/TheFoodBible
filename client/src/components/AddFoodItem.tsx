@@ -73,6 +73,7 @@ const AddFoodItem = ({onAdd,onClose} : addFoodFormProps) => {
 
   return (
     <div id='additem'>
+        {/* new food item form */}
         <form onSubmit={handleFoodSubmit}>
             <label>New food name:</label>
             <input min={2} value={newFood.name} onChange={(e) => setNewFood(prev => ({...prev,name: e.target.value})) } id='new-food-name'/>

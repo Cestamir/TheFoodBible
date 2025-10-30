@@ -11,11 +11,14 @@ interface itemsListProps{
 
 const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps ) => {
 
+    // items on page limit
     const [visibleCount,setVisibleCount] = useState(50);
 
+    // filtered items if there is any filter + search field content
     let filteredItems;
     let searchedInput = search.trim();
 
+    // check the search field
     switch(searchedInput){
         case "food":
             filteredItems = items.filter((item) => item.type === "food");
@@ -107,10 +110,12 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
             break;
     }
 
+    // load more items on page
     const loadMore = () => {
         setVisibleCount(prev => prev + 50);
     }
 
+    // which type of food to display or search from
     const checkForDiet = (plan: string): Item[] => {
         switch(plan){
             case "all":
@@ -144,14 +149,13 @@ const ItemsDisplay = ({items, onSelectItem,search,dietPlanType} : itemsListProps
         }
     }
 
+    // set items displayed
     const itemsToDisplay = search === "" ? checkForDiet(dietPlanType) : filteredItems;
     const limitedItems = itemsToDisplay.slice(0, visibleCount);
     const hasMoreItems = visibleCount < itemsToDisplay.length;
 
     if(items.length < 1) return <>Loading..</>
     if(filteredItems.length < 1) return <>No matching items.</>
-
-
 
   return (
     <div>

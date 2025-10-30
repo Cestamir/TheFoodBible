@@ -24,10 +24,6 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
           return;
       }
 
-    //   const fullRecipeIngredients = newRecipe.ingredients[0].split(",") 
-    //   setNewRecipe((prev) => ({...prev,ingredients: fullRecipeIngredients}))
-    //   console.log(newRecipe)
-
       try{
         if(token && isExpiredToken(token)){
             alert("expired token please login again.")
@@ -54,6 +50,7 @@ const AddRecipeItem = ({onAdd,onClose} : addRecipeFormProps) => {
 
   return (
     <div id='additem'>
+      {/* add new recipe form */}
           <form onSubmit={handleRecipeSubmit}>
               <label>New recipe name:</label>
               <input value={newRecipe?.name} onChange={(e) => setNewRecipe((prev) => ({...prev,name: e.target.value}))} id='new-recipe-title'/>

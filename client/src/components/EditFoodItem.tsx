@@ -16,6 +16,7 @@ const EditFoodItem = ({itemToDisplay,onSave,onCancel} : EditFormProps) => {
     const [editFoodItem,setEditFoodItem] = useState<foodFace>(itemToDisplay);
 
     const [editNutrientInput,setEditNutrientInput] = useState({name: "",value: 0,unit: ""});
+    
     const [editNutrientClicked,setEditNutrientClicked] = useState(false);
     const [addNewNutrientClicked,setAddNewNutrientClicked] = useState(false);
 

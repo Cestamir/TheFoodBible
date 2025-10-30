@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 interface ScrapeProps{
     sourceName: string;
@@ -10,6 +10,7 @@ const ScraperButton = ({sourceName,cooldown,onScraperRun} : ScrapeProps) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
+    // check for cooldown
     function canRunScraper(source: string) {
         const lastRun = localStorage.getItem(`scraperLastRun`);
         if (!lastRun) return true;
@@ -17,7 +18,7 @@ const ScraperButton = ({sourceName,cooldown,onScraperRun} : ScrapeProps) => {
         return diff > 60 * 60 * 1000; 
     }
 
-
+    // scrape data and save to db
     async function runScraper(source : string){
         setLoading(true);
         if (!canRunScraper(source)) {

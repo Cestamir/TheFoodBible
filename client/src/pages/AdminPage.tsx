@@ -1,22 +1,27 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import ControlPanel from '../utils/ControlPanel'
-import { Link, useNavigate } from 'react-router-dom'
+import {useNavigate } from 'react-router-dom'
 import { type User,type Diet, isExpiredToken } from '../utils/types'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '../reduxstore/store'
 import { addDiet, setDiets, updateDiet,deleteDiet } from '../reduxstore/dietSlice'
 import ScraperButton from '../components/ScraperButton'
 
-// add live update of the users
-
 const AdminPage = () => {
 
-  // populate db
+  // redux
+  const dispatch = useDispatch();
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
+  // populate db
   const [populateBtn,setPopulateBtn] = useState<boolean>(false);
   const [globalCooldown,setGlobalCooldown] = useState<number>(0);
 
+  // handle 1 hour cooldown for USDA webpage req. limit
   const updateCooldown = () => {
+
+    // set last scraper run time to storage
     const lastRun = localStorage.getItem("scraperLastRun");
 
     if(!lastRun){
@@ -28,6 +33,7 @@ const AdminPage = () => {
     setGlobalCooldown(remaining);
   }
 
+  // check for remaining time
   useEffect(() => {
     updateCooldown()
     const interval = setInterval(updateCooldown,1000);  
@@ -40,7 +46,7 @@ const AdminPage = () => {
     updateCooldown();
   }
 
-    // node server running test
+  // node server is running test
     const [message,setMessage] = useState<string>("");
     useEffect(() => {
         fetch("/api/test")
@@ -51,16 +57,13 @@ const AdminPage = () => {
         })
     },[]);
 
-  // diets
-
-  const {diets} = useSelector((state: RootState) => state.diet);
-  const dispatch = useDispatch();
-
+  // diets managment
+  const {diets} = useSelector((state: RootState) => state.diet)
   const [dietBtn,setDietBtn] = useState<boolean>(false);
   const [updateDietBtn,setUpdateDietBtn] = useState<boolean>(false);
   const [newDiet,setNewDiet] = useState<Diet>({planName: "",duration: 30,goal: ""});
 
-  // need to implement to parent component to load for the entire application
+  //load diet info from db (need to implement to parent component to load for the entire application)
   useEffect(() => {
     if(diets.length === 0){
       const loadData = async() => {
@@ -79,20 +82,81 @@ const AdminPage = () => {
     }
   },[diets.length,dispatch])
 
-  // users
-
+  // users managment
   const [createBtn,setCreateBtn] = useState(false);
   const [updateBtn,setUpdateBtn] = useState(false);
-  const [newUser,setNewUser] = useState<User>({userName: '',
+  const [userPanelClicked,setUserPanelClicked] = useState(false);
+
+  const [newUser,setNewUser] = useState<User>({
+    userName: '',
     password: '',
     userEmail: '',
-    role: '',foodItems: []});
-
-  const [userPanelClicked,setUserPanelClicked] = useState(false);
+    role: '',
+    foodItems: []});
   const [users,setUsers] = useState<User[]>();
-  const token = localStorage.getItem("token");
-  const navigate = useNavigate();
 
+  const handleDietSubmit = async () => {
+    const isUpdate = !!newDiet._id;
+    const fetchMethod = isUpdate ? "PUT" : "POST";
+    
+    try {
+      const url = isUpdate ? `/api/diet/${newDiet._id}` : `/api/diet`;
+      
+      const res = await fetch(url, {
+        method: fetchMethod,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newDiet)
+      });
+      
+      if (!res.ok) {
+        console.log(`Failed to ${isUpdate ? "update" : "add"} diet.`);
+        return;
+      }
+      
+      const savedDiet = await res.json();
+      
+      if (isUpdate) {
+        dispatch(updateDiet(savedDiet));
+      } else {
+        dispatch(addDiet(savedDiet));
+      }
+      
+      console.log(`Diet ${isUpdate ? "updated" : "created"} successfully`);
+      
+      setNewDiet({ planName: "", duration: 30, goal: "" });
+      setUpdateDietBtn(false);
+      
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const updateDietPlan = (id: string) => {
+    const dietToUpdate = diets.filter((d) => d._id === id)
+    setNewDiet(dietToUpdate[0]);
+  }
+
+  const deleteDietPlan = async (id: string) => {
+    try {
+      const res = await fetch(`/api/diet/${id}`,{method: "DELETE",headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`}})
+      if(!res.ok){
+        console.log(`failed to delete diet.`)
+        return;
+      }
+      dispatch(deleteDiet(id))
+      console.log("success")
+
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  // load users and users manage functions
   const manageUsers = async () => {
     const res = await fetch("/api/users",{method: "GET",headers: {"Content-Type" : "application/json","Authorization": `Bearer ${token}`}});
     const data = await res.json();
@@ -174,68 +238,7 @@ const AdminPage = () => {
     setNewUser({...userToUpdate,password: ""});
   }
 
-  const handleDietSubmit = async () => {
-    const isUpdate = !!newDiet._id;
-    const fetchMethod = isUpdate ? "PUT" : "POST";
-    
-    try {
-      const url = isUpdate ? `/api/diet/${newDiet._id}` : `/api/diet`;
-      
-      const res = await fetch(url, {
-        method: fetchMethod,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(newDiet)
-      });
-      
-      if (!res.ok) {
-        console.log(`Failed to ${isUpdate ? "update" : "add"} diet.`);
-        return;
-      }
-      
-      const savedDiet = await res.json();
-      
-      if (isUpdate) {
-        dispatch(updateDiet(savedDiet));
-      } else {
-        dispatch(addDiet(savedDiet));
-      }
-      
-      console.log(`Diet ${isUpdate ? "updated" : "created"} successfully`);
-      
-      setNewDiet({ planName: "", duration: 30, goal: "" });
-      setUpdateDietBtn(false);
-      
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  const updateDietPlan = (id: string) => {
-    const dietToUpdate = diets.filter((d) => d._id === id)
-    setNewDiet(dietToUpdate[0]);
-  }
-
-  const deleteDietPlan = async (id: string) => {
-    try {
-      const res = await fetch(`/api/diet/${id}`,{method: "DELETE",headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`}})
-      if(!res.ok){
-        console.log(`failed to delete diet.`)
-        return;
-      }
-      dispatch(deleteDiet(id))
-      console.log("success")
-
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  // check for admin
+  // check for admin is logged in
   useEffect(() => {
     const checkToken = () => {
       const token = localStorage.getItem("token");
@@ -278,7 +281,7 @@ const AdminPage = () => {
           setUpdateBtn(false);
           setPopulateBtn(false);}}>Create new diet plan</button>
       </div>
-        {/* populate db */}
+        {/* populate db btns */}
         {populateBtn && <div id='populatedb'>
           <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='fruits'/>
           <ScraperButton cooldown={globalCooldown} onScraperRun={handleScraperLastRun} sourceName='seeds'/>
@@ -309,7 +312,7 @@ const AdminPage = () => {
             </div>
           ))}</div>}
 
-        {/* create */}
+        {/* create user */}
         {createBtn && <div className='adminform'>
           <form onSubmit={(e) => {e.preventDefault(); handleCreateUser()}}>
           <label className='label'>Name:</label>
@@ -324,7 +327,7 @@ const AdminPage = () => {
           <button className='smallbtn' onClick={() => setCreateBtn(false)}>Cancel❌</button>
           </form></div>}
 
-          {/* update */}
+          {/* update user */}
           {!createBtn && updateBtn && <div className='adminform'>
           <form onSubmit={(e) => {e.preventDefault(); handleUpdateUser(newUser._id!)}}>
           <label className='label'>Name:</label>

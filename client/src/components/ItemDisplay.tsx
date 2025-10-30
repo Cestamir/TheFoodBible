@@ -14,7 +14,7 @@ const ItemDisplay = ({itemToDisplay,onToggle}: itemDisplayProps) => {
 
         {itemToDisplay.imageUrl != null && itemToDisplay.imageUrl.length > 5 ? <div>
           <img width={32} height={32} src={itemToDisplay.imageUrl}/>
-          </div> : <div>🥗</div>}
+          </div> : <div>{isFoodItem(itemToDisplay) ? "🍎" : "🥗"}</div>}
     </div>
   )
 }

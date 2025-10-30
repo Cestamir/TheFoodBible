@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import pLimit from "p-limit"
 import path from "path";
 import * as cheerio from "cheerio";
+
 import { broadcastUpdate } from "../server/src/sse.ts";
 
 import { fileURLToPath } from "url";
@@ -13,6 +14,7 @@ import { fetchJson,getUsdaFoodDetail,searchUsdaByName } from "./indexScraper.ts"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
+// urls
 const MONGO_URI = process.env.MONGO_URI!;
 const WIKI_API = "https://en.wikipedia.org/w/api.php";
 
@@ -34,31 +36,6 @@ type Vegetable = {
 }
 
 async function getVegetableTitlesFromWikiPageList(): Promise<string[]>{
-    // const url = new URL(WIKI_API);
-    // url.searchParams.set("action","parse")
-    // url.searchParams.set("page", "List_of_vegetables");
-    // url.searchParams.set("prop", "links");
-    // url.searchParams.set("format", "json");
-    // url.searchParams.set("origin", "*");
-
-    // const data = await fetchJson<any>(url.toString());
-
-    // const links = data.parse?.links || [];
-    // console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
-
-    // const titles = links
-    //     .map((l: any) => l["*"])
-    //     .filter((title: string) => {
-    //     if (!title) return false;
-    //     if (title.includes(":")) return false;
-    //     if (title.startsWith("List of")) return false;
-    //     // if (title.length > 60) return false;
-    //     return true;
-    //     });
-
-    // console.log("After filter:", titles.slice(0, 50))
-
-    // return Array.from(new Set(titles))
 
     const res = await fetch("https://en.wikipedia.org/wiki/List_of_vegetables");
       const html = await res.text();
@@ -226,7 +203,40 @@ export async function runVegetableScraper(){
     broadcastUpdate({type: "food",payload: records});
 }
 
+// DIFFRENT APROACH FOR GETTING WIKI TITLES
+
+    // const url = new URL(WIKI_API);
+    // url.searchParams.set("action","parse")
+    // url.searchParams.set("page", "List_of_vegetables");
+    // url.searchParams.set("prop", "links");
+    // url.searchParams.set("format", "json");
+    // url.searchParams.set("origin", "*");
+
+    // const data = await fetchJson<any>(url.toString());
+
+    // const links = data.parse?.links || [];
+    // console.log("Some raw link titles:", links.slice(0, 50).map((l: any) => l.title));
+
+    // const titles = links
+    //     .map((l: any) => l["*"])
+    //     .filter((title: string) => {
+    //     if (!title) return false;
+    //     if (title.includes(":")) return false;
+    //     if (title.startsWith("List of")) return false;
+    //     // if (title.length > 60) return false;
+    //     return true;
+    //     });
+
+    // console.log("After filter:", titles.slice(0, 50))
+
+    // return Array.from(new Set(titles))
+
+
+
+
 // main().catch((err) => {
 //     console.error("Error",err);
 //     process.exit(1);
 // })
+
+

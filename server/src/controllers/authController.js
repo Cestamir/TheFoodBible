@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import User from "../models/User.js"
 
+// auth controllers for user accounts
+
 export const registerUser = async (req,res) => {
     const {userName,password,userEmail,role} = req.body;
 

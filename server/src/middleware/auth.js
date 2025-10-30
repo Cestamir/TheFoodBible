@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken"
 
+// roles + token validation
+
 export const authenticate = async (req,res,next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(400).json({message: 'No token provided for authorization.'});
